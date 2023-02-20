@@ -1,43 +1,44 @@
-class Point {
-public:
-    // Point(int _index, double _x, double _y, double _z) {        //: index(_index), x(_x), y(_y), z(_z){}
-    //     index = _index;
-    //     x = _x;
-    //     y = _y;
-    //     z = _z;
-    // }
-    Point();
-    ~Point();
+#include "Point.hpp"
+
+// Point(int _index, double _x, double _y, double _z) {        //: index(_index), x(_x), y(_y), z(_z){}
+//     index = _index;
+//     x = _x;
+//     y = _y;
+//     z = _z;
+// }
+Point::Point(){}
+
+Point::Point(int _index, double _x, double _y, double _z)
+{ //: index(_index), x(_x), y(_y), z(_z){}
+    index = _index;
+    x = _x;
+    y = _y;
+    z = _z;
+}
 
 
-    //copy constructor 
-    Point(const Point &thePoint) {
-        index = thePoint.index;
-        x = thePoint.x;
-        y = thePoint.y;
-        z = thePoint.z;
-    }
-    
-    //asssignment
-    Point &Point::operator=(const Point &thePoint) {
-        if(this==&thePoint) return(*this);
+Point::~Point(){}
 
-        index = thePoint.index;
-        x = thePoint.x;
-        y = thePoint.y;
-        z = thePoint.z;
-        return *this;
-    }
-    
+// copy constructor
+Point::Point(const Point &thePoint)
+{
+    index = thePoint.index;
+    x = thePoint.x;
+    y = thePoint.y;
+    z = thePoint.z;
+}
 
-private:
-    int index;
-    double x,y,z;
-};
+// asssignment
+Point &Point::operator=(const Point &thePoint)
+{
+    if (this == &thePoint)
+        return (*this);
 
-Point::Point(int _index, double _x, double _y, double _z) {        //: index(_index), x(_x), y(_y), z(_z){}
-        index = _index;
-        x = _x;
-        y = _y;
-        z = _z;
-    }
+    index = thePoint.index;
+    x = thePoint.x;
+    y = thePoint.y;
+    z = thePoint.z;
+    return *this;
+}
+
+

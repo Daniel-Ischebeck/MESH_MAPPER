@@ -10,7 +10,7 @@ Double vs float – template so user can choose speed vs accuracy?
 
 //tri format, consider indexing, 0 or 1, general formatting
 */
-
+#include "Point.hpp"
 
 
 int main()
@@ -31,12 +31,13 @@ int main()
     }
 
     int currentLine = 1;
-
+    int numPoints, numDimensions, numAttrPP;
+    
     while (getline(inputTRIFile, line))
     {
         std::istringstream iss(line);
 
-        int numPoints, numDimensions, numAttrPP;
+        
 
         int _index;
         double _x, _y, _z;
@@ -53,10 +54,11 @@ int main()
                 listOfPoints.resize(numPoints);
                 
             }
-            if (iss>>_index>>_x>>_y>>_z){
+            else if ((iss>>_index>>_x>>_y>>_z)&&currentLine<numPoints+2){
                 //formatting for points
-                //listOfPoints.at(_index) = Point(_index,_x, _y, _z);
-                Point A = Point(1, 2.3, 4,2, 5.6);
+                std::cout << "**Line: " << currentLine << "\n";
+                listOfPoints.at(_index) = Point(_index,_x, _y, _z);
+                //Point A = Point(1, 2.3, 4,2, 5.6);
             }
             else{
                 std::cout << "Line: " << currentLine << "\n";
