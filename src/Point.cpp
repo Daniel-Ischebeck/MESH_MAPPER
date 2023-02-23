@@ -8,9 +8,9 @@
 // }
 Point::Point(){}
 
-Point::Point(int _index, double _x, double _y, double _z)
+Point::Point(int _pointIndex, double _x, double _y, double _z)
 { //: index(_index), x(_x), y(_y), z(_z){}
-    index = _index;
+    pointIndex = _pointIndex;
     x = _x;
     y = _y;
     z = _z;
@@ -22,7 +22,7 @@ Point::~Point(){}
 // copy constructor
 Point::Point(const Point &thePoint)
 {
-    index = thePoint.index;
+    pointIndex = thePoint.pointIndex;
     x = thePoint.x;
     y = thePoint.y;
     z = thePoint.z;
@@ -34,7 +34,7 @@ Point &Point::operator=(const Point &thePoint)
     if (this == &thePoint)
         return (*this);
 
-    index = thePoint.index;
+    pointIndex = thePoint.pointIndex;
     x = thePoint.x;
     y = thePoint.y;
     z = thePoint.z;

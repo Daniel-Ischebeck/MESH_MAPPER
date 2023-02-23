@@ -6,7 +6,7 @@ class Point
 public:
     Point();
 
-    Point(int _index, double _x, double _y, double _z);
+    Point(int _pointIndex, double _x, double _y, double _z);
 
     ~Point();
 
@@ -15,7 +15,7 @@ public:
     Point &operator=(const Point &thePoint);
 
 private:
-    int index;
+    int pointIndex;
     double x, y, z;
 };
 
