@@ -5,6 +5,16 @@
 #include <string>
 #include <vector>
 
+// include eigen dense
+// later eigen sparse
+
+// eigen is header only - link in cmake
+// #include "Eigen"
+// #include <Eigen/Core>
+//
+
+#include <Eigen/Dense>
+
 /*Notes
 Double vs float – template so user can choose speed vs accuracy?
 
@@ -16,7 +26,7 @@ Double vs float – template so user can choose speed vs accuracy?
 int main()
 {
 
-    std::ifstream inputTRIFile("indexed_straight_dome.tri"); // straight_dome.tri
+    std::ifstream inputTRIFile("../files/indexed_straight_dome.tri"); // straight_dome.tri
     std::string line;                                        // declare string to represent each line in the file
 
     std::vector<Point> listOfPoints;
@@ -86,7 +96,7 @@ int main()
                     listOfFaces.resize(10);
                 }
             }
-            else if (currentLine > numPoints + 2)
+            else if (currentLine > numPoints + 2 && currentLine < 21)
             {
                 std::istringstream iss(line);
                 iss >> _faceIndex >> _aIndex >> _bIndex >> _cIndex;
@@ -100,6 +110,15 @@ int main()
             }
             currentLine++;
         }
+
+        // we now want to convert list to a matrix
+
     }
+        Eigen::MatrixXd m(2, 2);
+        m(0, 0) = 3;
+        m(1, 0) = 2.5;
+        m(0, 1) = -1;
+        m(1, 1) = m(1, 0) + m(0, 1);
+        std::cout << m << std::endl;
     return 0;
 }
