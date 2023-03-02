@@ -14,6 +14,11 @@ public:
 
     Point &operator=(const Point &thePoint);
 
+    double get_index();
+    double get_x();
+    double get_y();
+    double get_z();
+
 private:
     int pointIndex;
     double x, y, z;

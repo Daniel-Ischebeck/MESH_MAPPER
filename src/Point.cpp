@@ -6,7 +6,7 @@
 //     y = _y;
 //     z = _z;
 // }
-Point::Point(){}
+Point::Point() {}
 
 Point::Point(int _pointIndex, double _x, double _y, double _z)
 { //: index(_index), x(_x), y(_y), z(_z){}
@@ -16,8 +16,7 @@ Point::Point(int _pointIndex, double _x, double _y, double _z)
     z = _z;
 }
 
-
-Point::~Point(){}
+Point::~Point() {}
 
 // copy constructor
 Point::Point(const Point &thePoint)
@@ -41,4 +40,7 @@ Point &Point::operator=(const Point &thePoint)
     return *this;
 }
 
-
+double Point::get_index() { return pointIndex; }
+double Point::get_x() { return x; }
+double Point::get_y() { return y; }
+double Point::get_z() { return z; }
