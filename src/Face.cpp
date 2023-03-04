@@ -36,3 +36,8 @@ Face &Face::operator=(const Face &theFace)
 }
 
 
+int Face::get_faceIndex() { return faceIndex; }
+int Face::get_aIndex() { return aIndex; }
+int Face::get_bIndex() { return bIndex; }
+int Face::get_cIndex() { return cIndex; }
+

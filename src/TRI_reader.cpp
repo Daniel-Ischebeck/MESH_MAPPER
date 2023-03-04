@@ -183,5 +183,35 @@ int main()
     std::cout << faceMatrix << "\n\n"
               << std::endl;
 
+    // area of triangle
+    // very inefficent quick calc
+    std::vector<double> listOfAreas;
+    listOfAreas.resize(numFaceRows);
+    // loop through the list of faces, for each face get the points, then use these in calc
+    double x1, y1, x2, y2, x3, y3;
+    double dt;
+
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        x1 = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x();
+        y1 = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
+        x2 = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x();
+        y2 = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
+        x3 = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x();
+        y3 = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
+
+        std::cout << "i: " << i << "\tx1: " << x1 << "\n";
+        std::cout << "i: " << i << "\ty1: " << y1 << "\n";
+        std::cout << "i: " << i << "\tx2: " << x2 << "\n";
+        std::cout << "i: " << i << "\ty2: " << y2 << "\n";
+        std::cout << "i: " << i << "\tx3: " << x3 << "\n";
+        std::cout << "i: " << i << "\ty3: " << y3 << "\n";
+
+        dt = (x1 * y2 - y1 * x2) + (x2 * y3 - y2 * x3) + (x3 * y1 - y3 * x1);
+        listOfAreas.at(i) = dt;
+        std::cout << "~~~~~~~";
+        std::cout << "i: " << i << "\tArea: " << dt << "\n\n\n";
+    }
+
     return 0;
 }

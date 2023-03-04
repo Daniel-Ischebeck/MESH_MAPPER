@@ -14,6 +14,11 @@ public:
 
     Face &operator=(const Face &theFace);
 
+    int get_faceIndex();
+    int get_aIndex();
+    int get_bIndex();
+    int get_cIndex();
+
 private:
     int faceIndex;
     int aIndex, bIndex, cIndex; //triangle with corners defined by verticies  A,B,C
