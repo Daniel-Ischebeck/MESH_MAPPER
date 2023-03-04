@@ -213,5 +213,33 @@ int main()
         std::cout << "i: " << i << "\tArea: " << dt << "\n\n\n";
     }
 
+    // assign to sparse matrix
+    //  if vertex j belongs to triangle i, do some calc and place number, otherwise zero.
+    // look at index numbers of triangle, and compare these to j, if theres a match, vertex j is part of triangle i
+
+    std::cout << "\n\n\n\n";
+    Eigen::MatrixXd M = Eigen::MatrixXd::Zero(10,8);
+    //would be sparse in reality, dense for now.
+
+
+    for (int i = 0; i < listOfFaces.size(); i++)
+    { // loop through the triangles
+
+        for (int j = 0; j < listOfPoints.size(); j++)
+        { // loop through the points
+
+            if (listOfFaces.at(i).get_aIndex() == j ||
+                listOfFaces.at(i).get_bIndex() == j ||
+                listOfFaces.at(i).get_cIndex() == j)
+            { // if the first vertex of the triangle is equal to 0
+                std::cout << "Triangle " << i  << " contains vertex " << j << "\n";
+                M(i,j) = 1;
+            }
+        }
+    }
+
+    std::cout << "\n\nFilled matrix M:\n\n";
+    std:: cout << M << "\n\n" << std::endl;
+
     return 0;
 }
