@@ -51,7 +51,6 @@ int main()
     int currentLine = 1;
     int numPoints, numDimensions, numAttrPP;
 
-    // int numFaces = 1, numVertPF = 2, numAttrPF = 3;
 
     while (getline(inputTRIFile, line))
     {
@@ -107,7 +106,6 @@ int main()
                 if (!(iss >> numFaces >> numVertPF >> numAttrPF))
                 {
                     std::cout << "wrong formatting\n";
-                    std::cout << numFaces << " " << numVertPF << " " << numAttrPF << "\n";
                 }
 
                 else
@@ -221,8 +219,8 @@ int main()
     Eigen::MatrixXd M = Eigen::MatrixXd::Zero(10, 8);
     // would be sparse in reality, dense for now.
 
-    Eigen::MatrixXd A_Mf1_pre = Eigen::MatrixXd::Zero(10, 8);
-    Eigen::MatrixXd A_Mf2_pre = Eigen::MatrixXd::Zero(10, 8);
+    Eigen::MatrixXd A_Mf1 = Eigen::MatrixXd::Zero(10, 8);
+    Eigen::MatrixXd A_Mf2 = Eigen::MatrixXd::Zero(10, 8);
 
     for (int i = 0; i < listOfFaces.size(); i++)
     { // loop through the triangles
@@ -248,13 +246,13 @@ int main()
             {
                 // real part x3-x2
                 M(i,j) = 1;
-                A_Mf1_pre(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() -
+                A_Mf1(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() -
                                    listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) /
                                   sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
                                                                 // because dividing by sqrt of negative, should this be in complex part?
 
                 // complex part y3-y2
-                A_Mf2_pre(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() -
+                A_Mf2(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() -
                                    listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) /
                                   sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
                                                                 // because dividing by sqrt of negative, should this be in complex part?
@@ -264,12 +262,12 @@ int main()
             {
                 // real part x1-x2
                 M(i,j) = 2;
-                A_Mf1_pre(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() -
+                A_Mf1(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() -
                                    listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) /
                                   sqrt(abs(listOfAreas.at(i)));
 
                 // complex part y1-y3
-                A_Mf2_pre(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
+                A_Mf2(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
                                    listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) /
                                   sqrt(abs(listOfAreas.at(i)));
             }
@@ -278,12 +276,12 @@ int main()
             {
                 // real part x2-x1
                 M(i,j) = 3;
-                A_Mf1_pre(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() -
+                A_Mf1(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() -
                                    listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()) /
                                   sqrt(abs(listOfAreas.at(i)));
 
                 // complex part y2-y1
-                A_Mf2_pre(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
+                A_Mf2(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
                                    listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()) /
                                   sqrt(abs(listOfAreas.at(i)));
             }
@@ -295,11 +293,11 @@ int main()
               << std::endl;
 
     std::cout << "\n\nA_Mf1:\n\n";
-    std::cout << A_Mf1_pre << "\n\n"
+    std::cout << A_Mf1 << "\n\n"
               << std::endl;
 
     std::cout << "\n\nA_Mf2:\n\n";
-    std::cout << A_Mf2_pre << "\n\n"
+    std::cout << A_Mf2 << "\n\n"
               << std::endl;
 
     // we want to copy pinned coordinate data to its own thing, remove these from the matrix
@@ -309,12 +307,12 @@ int main()
     Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(10, 2);
     Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd::Zero(10, 2);
 
-    b_Mp1 << A_Mf1_pre.block<10, 1>(0, 4), A_Mf1_pre.block<10, 1>(0, 6); // concatting the two columns for pinned matrix
+    b_Mp1 << A_Mf1.block<10, 1>(0, 4), A_Mf1.block<10, 1>(0, 6); // concatting the two columns for pinned matrix
     std::cout << "\n\nb_Mp1:\n\n";
     std::cout << b_Mp1 << "\n\n"
               << std::endl;
 
-    b_Mp2 << A_Mf2_pre.block<10, 1>(0, 4), A_Mf2_pre.block<10, 1>(0, 6); // concatting the two columns for pinned matrix
+    b_Mp2 << A_Mf2.block<10, 1>(0, 4), A_Mf2.block<10, 1>(0, 6); // concatting the two columns for pinned matrix
     std::cout << "\n\nb_Mp2:\n\n";
     std::cout << b_Mp2 << "\n\n"
               << std::endl;
@@ -322,34 +320,34 @@ int main()
     // now to remove the columns from matrix
 
     unsigned int colToRemove = 4;
-    unsigned int numRows = A_Mf1_pre.rows();
-    unsigned int numCols = A_Mf1_pre.cols() - 1;
+    unsigned int numRows = A_Mf1.rows();
+    unsigned int numCols = A_Mf1.cols() - 1;
 
     if (colToRemove < numCols)
     {
-        A_Mf1_pre.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf1_pre.block(0, colToRemove + 1, numRows, numCols - colToRemove);
-        A_Mf2_pre.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf2_pre.block(0, colToRemove + 1, numRows, numCols - colToRemove);
+        A_Mf1.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf1.block(0, colToRemove + 1, numRows, numCols - colToRemove);
+        A_Mf2.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf2.block(0, colToRemove + 1, numRows, numCols - colToRemove);
     }
-    A_Mf1_pre.conservativeResize(numRows, numCols);
-    A_Mf2_pre.conservativeResize(numRows, numCols);
+    A_Mf1.conservativeResize(numRows, numCols);
+    A_Mf2.conservativeResize(numRows, numCols);
 
     colToRemove = 5;    //as weve resized, to remove what was the 6, now 5
-    numRows = A_Mf1_pre.rows();
-    numCols = A_Mf1_pre.cols() - 1;
+    numRows = A_Mf1.rows();
+    numCols = A_Mf1.cols() - 1;
     if (colToRemove < numCols)
     {
-        A_Mf1_pre.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf1_pre.block(0, colToRemove + 1, numRows, numCols - colToRemove);
-        A_Mf2_pre.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf2_pre.block(0, colToRemove + 1, numRows, numCols - colToRemove);
+        A_Mf1.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf1.block(0, colToRemove + 1, numRows, numCols - colToRemove);
+        A_Mf2.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf2.block(0, colToRemove + 1, numRows, numCols - colToRemove);
     }
-    A_Mf1_pre.conservativeResize(numRows, numCols);
-    A_Mf2_pre.conservativeResize(numRows, numCols);
+    A_Mf1.conservativeResize(numRows, numCols);
+    A_Mf2.conservativeResize(numRows, numCols);
 
     std::cout << "\n\nRemoved some stuff...A_Mf1:\n\n";
-    std::cout << A_Mf1_pre << "\n\n"
+    std::cout << A_Mf1 << "\n\n"
               << std::endl;
 
     std::cout << "\n\nRemoved some stuff...A_Mf2:\n\n";
-    std::cout << A_Mf2_pre << "\n\n"
+    std::cout << A_Mf2 << "\n\n"
               << std::endl;
 
     /*
@@ -373,8 +371,8 @@ int main()
     Eigen::MatrixXd A_bottom = Eigen::MatrixXd::Zero(10, 12);
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(20, 12);
 
-    A_top << A_Mf1_pre, -A_Mf2_pre;
-    A_bottom << A_Mf2_pre, A_Mf1_pre;
+    A_top << A_Mf1, -A_Mf2;
+    A_bottom << A_Mf2, A_Mf1;
 
     A << A_top, A_bottom;
 
