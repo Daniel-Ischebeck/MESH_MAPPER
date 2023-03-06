@@ -1,5 +1,12 @@
 
+list(PREPEND CMAKE_MODULE_PATH ${MESH_MAPPER_SOURCE_DIR}/cmake)
 
+# Libigl
+include(libigl)
+
+
+# Enable the target igl::glfw
+igl_include(glfw)
 
 file(GLOB MY_FILES "*.tri" ${MESH_MAPPER_SOURCE_DIR}/files)
 file(COPY ${MY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -15,6 +22,7 @@ add_executable(reader TRI_reader.cpp)
 
 target_link_libraries(reader model)
 target_link_libraries(reader Eigen3::Eigen)
+target_link_libraries(reader igl::glfw)
 # target_link_libraries (reader
 #                         model
 #                         ${Eigen_LIBRARIES}

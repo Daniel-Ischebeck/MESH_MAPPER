@@ -15,6 +15,8 @@
 
 #include <Eigen/Dense>
 
+#include <igl/boundary_loop.h>
+
 /*Notes
 Double vs float – template so user can choose speed vs accuracy?
 
@@ -31,10 +33,15 @@ bool calcTriangleAreas(std::vector<Point> &listOfPoints,
                        std::vector<Face> &listOfFaces,
                        std::vector<double> &listOfAreas);
 
+// briefly have a global varible for eigen matrix of faces
+// igl boundary loop test
 
+
+std::vector<std::vector<int>> faces;
 
 int main()
 {
+
 
 
     std::vector<Point> listOfPoints; // underscore just to check different
@@ -54,6 +61,32 @@ int main()
         std::cout << "Triangle calcualtion failed\n";
         return (-1);
     }
+
+
+//
+    Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+    }
+
+    Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
+    igl::boundary_loop(faceMatrix, boundaryVerticies);
+
+    pinnedVerticies(0) = boundaryVerticies(0);
+    pinnedVerticies(1) = boundaryVerticies(boundaryVerticies.size() / 2);
+    std::cout << "\n\nBoundary indexes\n"
+              << boundaryVerticies << std::endl;
+    std::cout << "\n\nPinned Verticies\n"
+              << pinnedVerticies << std::endl;
+
+
+
+
+
+
+
+
 
     // assign to sparse matrix
     //  if vertex j belongs to triangle i, do some calc and place number, otherwise zero.
@@ -137,19 +170,19 @@ int main()
     Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
     Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
 
-    b_Mp1 << A_Mf1.block<10, 1>(0, 4), A_Mf1.block<10, 1>(0, 6); // concatting the two columns for pinned matrix
+    b_Mp1 << A_Mf1.block<10, 1>(0, pinnedVerticies(0)), A_Mf1.block<10, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
     // std::cout << "\n\nb_Mp1:\n\n";
     // std::cout << b_Mp1 << "\n\n"
     //           << std::endl;
 
-    b_Mp2 << A_Mf2.block<10, 1>(0, 4), A_Mf2.block<10, 1>(0, 6); // concatting the two columns for pinned matrix
+    b_Mp2 << A_Mf2.block<10, 1>(0, pinnedVerticies(0)), A_Mf2.block<10, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
     // std::cout << "\n\nb_Mp2:\n\n";
     // std::cout << b_Mp2 << "\n\n"
     //           << std::endl;
 
     // now to remove the columns from matrix
 
-    auto colToRemove = 4; // auto - was warning about possible loss of data (prev unsigned int)
+    auto colToRemove = pinnedVerticies(0); // auto - was warning about possible loss of data (prev unsigned int)
     auto numRows = A_Mf1.rows();
     auto numCols = A_Mf1.cols() - 1;
 
@@ -161,7 +194,7 @@ int main()
     A_Mf1.conservativeResize(numRows, numCols);
     A_Mf2.conservativeResize(numRows, numCols);
 
-    colToRemove = 5; // as weve resized, to remove what was the 6, now 5
+    colToRemove = pinnedVerticies(1)-1; // as weve resized, to remove what was the 6, now 5
     numRows = A_Mf1.rows();
     numCols = A_Mf1.cols() - 1;
     if (colToRemove < numCols)
@@ -217,13 +250,13 @@ int main()
               << Bmat << "\n\n"
               << std::endl;
 
-    Eigen::VectorXd pinned(4, 1);
-    pinned << 0, 1, 0, 0; // choosing to pin in UV space, one coord at (1,1) other at (10,10)
-    std::cout << "pinned:\n\n"
-              << pinned << "\n\n"
+    Eigen::VectorXd pinnedUV(4, 1);
+    pinnedUV << 0, 1, 0, 0; // choosing to pin in UV space, one coord at (1,1) other at (10,10)
+    std::cout << "Pinned UV:\n\n"
+              << pinnedUV << "\n\n"
               << std::endl;
 
-    Eigen::MatrixXd RHS = -Bmat * pinned; // should rhs be neg? Ax=b
+    Eigen::MatrixXd RHS = -Bmat * pinnedUV; // should rhs be neg? Ax=b
 
     std::cout << "RHS\n"
               << RHS << "\n\n"
@@ -311,6 +344,7 @@ bool readFile(std::vector<Point> &listOfPoints,
                         << "Attributes: " << numAttrPF << "\n\n";
 
                     listOfFaces.resize(numFaces);
+                    faces.resize(numFaces, std::vector<int>(numVertPF));    
                 }
             }
             else if (currentLine > numPoints + 2 && currentLine < numPoints + numFaces + 3)
@@ -321,6 +355,11 @@ bool readFile(std::vector<Point> &listOfPoints,
                 // std::cout << "!Line: " << currentLine << "\n";
                 // std::cout << _faceIndex << " " << _aIndex << " " << _bIndex << " " << _cIndex << "\n";
                 listOfFaces.at(_faceIndex) = Face(_faceIndex, _aIndex, _bIndex, _cIndex);
+
+                // testing eigen matrix of faces for boundary loop
+                faces[_faceIndex][0] = _aIndex;
+                faces[_faceIndex][1] = _bIndex;
+                faces[_faceIndex][2] = _cIndex;
             }
             else
             {

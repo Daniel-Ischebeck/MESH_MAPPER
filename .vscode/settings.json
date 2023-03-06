@@ -87,7 +87,10 @@
         "xutility": "cpp",
         "*.expression": "cpp",
         "alignedvector3": "cpp",
-        "fft": "cpp"
+        "fft": "cpp",
+        "cfenv": "cpp",
+        "cstdarg": "cpp",
+        "stack": "cpp"
     },
     "cmake.configureOnOpen": true
 }
