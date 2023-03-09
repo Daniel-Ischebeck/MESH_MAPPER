@@ -1,6 +1,6 @@
 #include "Face.hpp"
 
-Face::Face(){}
+Face::Face() {}
 
 Face::Face(int _faceIndex, int _aIndex, int _bIndex, int _cIndex)
 { //: index(_index), x(_x), y(_y), z(_z){}
@@ -10,8 +10,7 @@ Face::Face(int _faceIndex, int _aIndex, int _bIndex, int _cIndex)
     cIndex = _cIndex;
 }
 
-
-Face::~Face(){}
+Face::~Face() {}
 
 // copy constructor
 Face::Face(const Face &theFace)
@@ -35,9 +34,9 @@ Face &Face::operator=(const Face &theFace)
     return *this;
 }
 
-
 int Face::get_faceIndex() { return faceIndex; }
 int Face::get_aIndex() { return aIndex; }
 int Face::get_bIndex() { return bIndex; }
 int Face::get_cIndex() { return cIndex; }
 
+void Face::set_faceIndex(int newIndex) { faceIndex = newIndex; }

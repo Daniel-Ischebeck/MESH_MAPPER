@@ -19,6 +19,9 @@ public:
     int get_bIndex();
     int get_cIndex();
 
+    void set_faceIndex(int newIndex);   
+    //adding this set functon as when preprocessing models still want consistent index after removing some triangles
+
 private:
     int faceIndex;
     int aIndex, bIndex, cIndex; //triangle with corners defined by verticies  A,B,C

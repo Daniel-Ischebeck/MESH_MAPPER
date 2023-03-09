@@ -33,13 +33,15 @@ bool calcTriangleAreas(std::vector<Point> &listOfPoints,
                        std::vector<Face> &listOfFaces,
                        std::vector<double> &listOfAreas);
 
-
 bool outputUVfile(std::vector<Face> &listOfFaces,
-                  Eigen::MatrixXi &faceMatrix,                   
+                  Eigen::MatrixXi &faceMatrix,
                   Eigen::VectorXd &u_coords,
                   Eigen::VectorXd &v_coords,
-                  std::string filePath);            //testing face matrix and witing it to file
+                  std::string filePath); // testing face matrix and witing it to file
 
+bool outputTRIfile(std::vector<Point> &listOfPoints,
+                   std::vector<Face> &listOfFaces,
+                   std::string filePath);
 
 // briefly have a global varible for eigen matrix of faces
 // igl boundary loop test
@@ -51,13 +53,90 @@ int main()
 
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
-    std::string filePath = "../files/indexed_straight_dome.tri";
+    // std::string filePath = "../files/indexed_straight_dome.tri";
+    std::string filePath = "../files/part_sphere_high.tri";
 
     if (!readFile(listOfPoints, listOfFaces, filePath))
     {
         std::cout << "Exiting\n";
         return (-1);
     }
+
+    // Done lower down afer removing some triangles
+    //  Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
+    //  for (int i = 0; i < listOfFaces.size(); i++)
+    //  {
+    //      faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+    //  }
+
+    // we now need to preprocess before we can perform mapping
+    // currently not topologically a disk
+
+    /*
+    we want to remove flat bottom of dome
+    i.e. triangles that have all verticies in the x-y plane -> z coordinate of all three verticies is the same
+    */
+    double a, b, c;
+    int listOfFacesSizeBefore = listOfFaces.size();
+    int numElementsRemoved = 0;
+    int numElementsAdded = 0;
+    int rowCounter = 0;
+
+    std::vector<Face> newListOfFaces(listOfFacesSizeBefore);
+
+    for (int i = 0; i < listOfFacesSizeBefore; i++)
+    {
+        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
+        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
+        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
+        // std::cout << a << "\n";
+        // std::cout << b << "\n";
+        // std::cout << c << "\n";
+        // std::cout << "\n\n";
+
+        // copy elements that are NOT part of the base into a new list which will now use
+        if (!((a == b) && (b == c)))
+        {
+            // std::cout << "Triangle: " << i << " is on x-y plane\n";
+            //  listOfFaces.erase(listOfFaces.begin() + i);
+            // numElementsRemoved++;
+            numElementsAdded++;
+
+            // newListOfFaces.at(rowCounter) = Face(i, listOfFaces.at(i).get_aIndex(),listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
+            listOfFaces.at(rowCounter) = Face(i, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
+
+            faces[rowCounter][0] = listOfFaces.at(i).get_aIndex();
+            faces[rowCounter][1] = listOfFaces.at(i).get_bIndex();
+            faces[rowCounter][2] = listOfFaces.at(i).get_cIndex();
+            rowCounter++;
+        }
+    }
+
+    // newListOfFaces.resize(numElementsAdded);
+    // for(int i=0; i<newListOfFaces.size(); i++){
+    //     std::cout << i << " " << newListOfFaces.at(i).get_aIndex() << " " << newListOfFaces.at(i).get_bIndex() << " " << newListOfFaces.at(i).get_cIndex() << "\n";
+    // }
+
+    listOfFaces.resize(numElementsAdded);
+
+    // face matrix also needs updating!
+    /*
+    faces.resize(numFaces, std::vector<int>(numVertPF));
+                faces[faceIndexCounter][0] = _aIndex;
+                faces[faceIndexCounter][1] = _bIndex;
+                faces[faceIndexCounter][2] = _cIndex;
+    */
+    faces.resize(numElementsAdded, std::vector<int>(3)); // always 3  verticies per row
+
+    Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+    }
+
+    // std::cout << "\nFace matrix:\n"
+    //           << faceMatrix << "\n\n"
+    //           << std::endl;
 
     std::vector<double> listOfAreas(listOfFaces.size());
 
@@ -67,12 +146,7 @@ int main()
         return (-1);
     }
 
-    //
-    Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
-    }
+    outputTRIfile(listOfPoints, listOfFaces, "testOutputFile.tri");
 
     Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
     igl::boundary_loop(faceMatrix, boundaryVerticies);
@@ -90,7 +164,7 @@ int main()
 
     std::cout << "\n\n\n\n";
     Eigen::MatrixXd M = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
-    // would be sparse in reality, dense for now.
+    // would be sparse in reality, dense for now
 
     Eigen::MatrixXd A_Mf1 = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
     Eigen::MatrixXd A_Mf2 = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
@@ -162,21 +236,24 @@ int main()
     // we want to copy pinned coordinate data to its own thing, remove these from the matrix
     // and resize the matrix
 
-    // pinning verticies 4 and 6
+    // pinning verticies
     Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
     Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
-
-    b_Mp1 << A_Mf1.block<10, 1>(0, pinnedVerticies(0)), A_Mf1.block<10, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
+    int testing = listOfFaces.size();
+    // template paramters need to be known at compile time
+    // b_Mp1 << A_Mf1.block<testing, 1>(0, pinnedVerticies(0)), A_Mf1.block<testing, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
+    b_Mp1 << A_Mf1.col(pinnedVerticies(0)), A_Mf1.col(pinnedVerticies(1));
     // std::cout << "\n\nb_Mp1:\n\n";
     // std::cout << b_Mp1 << "\n\n"
     //           << std::endl;
 
-    b_Mp2 << A_Mf2.block<10, 1>(0, pinnedVerticies(0)), A_Mf2.block<10, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
+    // b_Mp2 << A_Mf2.block<10, 1>(0, pinnedVerticies(0)), A_Mf2.block<10, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
+    b_Mp2 << A_Mf2.col(pinnedVerticies(0)), A_Mf2.col(pinnedVerticies(1));
     // std::cout << "\n\nb_Mp2:\n\n";
     // std::cout << b_Mp2 << "\n\n"
     //           << std::endl;
 
-    // now to remove the columns from matrix
+    // // now to remove the columns from matrix
 
     auto colToRemove = pinnedVerticies(0); // auto - was warning about possible loss of data (prev unsigned int)
     auto numRows = A_Mf1.rows();
@@ -209,13 +286,17 @@ int main()
     // std::cout << A_Mf2 << "\n\n"
     //           << std::endl;
 
+    std::cout << "Dimensions A_Mf1: " << A_Mf1.rows() << " x " << A_Mf1.cols() << "\n";
+    std::cout << "Dimensions A_Mf2: " << A_Mf2.rows() << " x " << A_Mf2.cols() << "\n";
     // Form A, consists of 4 block matricies
     /*
     Mf1 -Mf2
     Mf2 Mf1
     */
-    Eigen::MatrixXd A_top = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfFaces.size() + 2);
-    Eigen::MatrixXd A_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfFaces.size() + 2);
+    std::cout << "listofFaces size: " << listOfFaces.size() << "   listofpoint size: " << listOfPoints.size() << "\n";
+
+    Eigen::MatrixXd A_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 2*(listOfPoints.size() - 2));
+    Eigen::MatrixXd A_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 2*(listOfPoints.size() - 2));
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
     // A is 2(numFaces) x 2(numPoints-numPinnedpoints) matrix
 
@@ -226,9 +307,9 @@ int main()
 
     std::cout << "#############  Final things   #########\n\n";
 
-    std::cout << "A\n\n"
-              << A << "\n\n"
-              << std::endl;
+    // std::cout << "A\n\n"
+    //           << A << "\n\n"
+    //           << std::endl;
 
     Eigen::MatrixXd Bmat_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 4); // 4 as two pinned verticeis
     Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 4);
@@ -242,9 +323,9 @@ int main()
     // b = - Bmat x PinnedVector          ??
     // do we assign values for Up1??
 
-    std::cout << "Bmat:\n"
-              << Bmat << "\n\n"
-              << std::endl;
+    // std::cout << "Bmat:\n"
+    //           << Bmat << "\n\n"
+    //           << std::endl;
 
     Eigen::VectorXd pinnedUV(4, 1); // will always pin two coords, therefore 4 points
     pinnedUV << 0, 1, 0, 0;         // choosing to pin in UV space, one coord at (0,0), (1,0)   //is this sensible for all shapes?
@@ -254,9 +335,9 @@ int main()
 
     Eigen::MatrixXd RHS = -Bmat * pinnedUV; // should rhs be neg? Ax=b
 
-    std::cout << "RHS\n"
-              << RHS << "\n\n"
-              << std::endl;
+    // std::cout << "RHS\n"
+    //           << RHS << "\n\n"
+    //           << std::endl;
 
     // std::cout << "The least-squares solution is:\n"
     //     //<< A.template bdcSvd<Eigen::ComputeThinU | Eigen::ComputeThinV>().solve(Bmat) << std::endl;
@@ -284,17 +365,17 @@ int main()
 
     Eigen::VectorXd u_coords(listOfPoints.size(), 1);
     Eigen::VectorXd v_coords(listOfPoints.size(), 1);
-    // efficency concerns of adding in the middle of a vector
-    /*
-    pre first pinned    //from zero to one before pinned
-    first pinned        //firt pinned
-    post first pinned   //from first pinned to one before second pinned
-    second  pinned      //second pinned
-    post second pinned  //from second pinned till the end
+    // // efficency concerns of adding in the middle of a vector
+    // /*
+    // pre first pinned    //from zero to one before pinned
+    // first pinned        //firt pinned
+    // post first pinned   //from first pinned to one before second pinned
+    // second  pinned      //second pinned
+    // post second pinned  //from second pinned till the end
 
-    this is all for u
+    // this is all for u
 
-    //but pinned may be first or last?? worry about this if it happens?*/
+    // //but pinned may be first or last?? worry about this if it happens?*/
 
     for (int i = 0; i < pinnedVerticies(0); i++)
     {
@@ -315,9 +396,9 @@ int main()
         u_coords(i) = solution(i - 2); // now weve passed two pinned points
     }
 
-    std::cout << "\nU coords:\n"
-              << u_coords << "\n"
-              << std::endl;
+    // std::cout << "\nU coords:\n"
+    //           << u_coords << "\n"
+    //           << std::endl;
 
     //--------------v
     // soltuion.rows() is 12, therefore over 2 is 6 - the first of v coords
@@ -347,42 +428,67 @@ int main()
         j++;
     }
 
-    std::cout << "\nV coords:\n"
-              << v_coords << "\n\n"
-              << std::endl;
+    // std::cout << "\nV coords:\n"
+    //           << v_coords << "\n\n"
+    //           << std::endl;
 
     outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
-
 
     return 0;
 }
 
 bool outputUVfile(std::vector<Face> &listOfFaces,
-                  Eigen::MatrixXi &faceMatrix,          
+                  Eigen::MatrixXi &faceMatrix,
                   Eigen::VectorXd &u_coords,
                   Eigen::VectorXd &v_coords,
-                  std::string filePath)             //testing face matrix
+                  std::string filePath) // testing face matrix
 {
 
     std::ofstream outputUVfile;
-    outputUVfile.open(filePath);    //file name or file path
+    outputUVfile.open(filePath); // file name or file path
 
-
-    outputUVfile << u_coords.rows() << " 2 0\n";    //uv output points will always have 2 dimensions and 0 attributes
-    for(int i=0; i<u_coords.rows(); i++)
+    outputUVfile << u_coords.rows() << " 2 0\n"; // uv output points will always have 2 dimensions and 0 attributes
+    for (int i = 0; i < u_coords.rows(); i++)
     {
         outputUVfile << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
     }
 
-    outputUVfile << listOfFaces.size() << " 3 0\n";     //these attribute values may change later
-    //outputUVfile << faceMatrix << "\n";
-    for(int i=0; i<listOfFaces.size(); i++)
+    outputUVfile << listOfFaces.size() << " 3 0\n"; // these attribute values may change later
+    // outputUVfile << faceMatrix << "\n";
+    for (int i = 0; i < listOfFaces.size(); i++)
     {
-        outputUVfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex()<< " " << listOfFaces.at(i).get_cIndex() << "\n";
+        outputUVfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << "\n";
     }
 
     outputUVfile << "Random\n";
-    
+
+    return true;
+}
+
+bool outputTRIfile(std::vector<Point> &listOfPoints,
+                   std::vector<Face> &listOfFaces,
+                   std::string filePath) // testing face matrix
+{
+
+    std::ofstream outputTRIfile;
+    outputTRIfile.open(filePath); // file name or file path
+
+    outputTRIfile << listOfPoints.size() << " 3 0\n"; // uv output points will always have 2 dimensions and 0 attributes
+    for (int i = 0; i < listOfPoints.size(); i++)
+    {
+        outputTRIfile << i << " " << listOfPoints.at(i).get_x() << " "
+                      << listOfPoints.at(i).get_y() << " "
+                      << listOfPoints.at(i).get_z() << "\n";
+    }
+
+    outputTRIfile << listOfFaces.size() << " 3 0\n"; // these attribute values may change later
+    // outputUVfile << faceMatrix << "\n";
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        outputTRIfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << "\n";
+    }
+
+    outputTRIfile << "Random\n";
 
     return true;
 }
@@ -403,6 +509,8 @@ bool readFile(std::vector<Point> &listOfPoints,
     int currentLine = 1;
     int numPoints, numDimensions, numAttrPP;
     int numFaces, numVertPF, numAttrPF;
+
+    int faceIndexCounter = 0;
 
     while (getline(inputTRIFile, line))
     {
@@ -431,7 +539,7 @@ bool readFile(std::vector<Point> &listOfPoints,
             {
                 // formatting for points
                 // std::cout << "**Line: " << currentLine << "\n";
-                // std::cout << _pointIndex << " " << _x << " " << _y << " " << _z << "\n";
+                std::cout << _pointIndex << " " << _x << " " << _y << " " << _z << "\n";
                 listOfPoints.at(_pointIndex) = Point(_pointIndex, _x, _y, _z);
             }
             else if ((currentLine == numPoints + 2))
@@ -460,15 +568,20 @@ bool readFile(std::vector<Point> &listOfPoints,
             // 21 = 1+numPoints(8)+1+numFaces(10)+1+1 - account for lines which give number of items, and line at end
             {
                 std::istringstream iss(line);
-                iss >> _faceIndex >> _aIndex >> _bIndex >> _cIndex;
+
+                iss >> _faceIndex >> _aIndex >> _bIndex >> _cIndex; // there can be more attributes im not reading in here
                 // std::cout << "!Line: " << currentLine << "\n";
-                // std::cout << _faceIndex << " " << _aIndex << " " << _bIndex << " " << _cIndex << "\n";
-                listOfFaces.at(_faceIndex) = Face(_faceIndex, _aIndex, _bIndex, _cIndex);
+
+                // faces arent indexed in phils example, use counter
+                std::cout << faceIndexCounter << " " << _aIndex << " " << _bIndex << " " << _cIndex << "\n";
+                listOfFaces.at(faceIndexCounter) = Face(faceIndexCounter, _aIndex, _bIndex, _cIndex);
 
                 // testing eigen matrix of faces for boundary loop
-                faces[_faceIndex][0] = _aIndex;
-                faces[_faceIndex][1] = _bIndex;
-                faces[_faceIndex][2] = _cIndex;
+                faces[faceIndexCounter][0] = _aIndex;
+                faces[faceIndexCounter][1] = _bIndex;
+                faces[faceIndexCounter][2] = _cIndex;
+
+                faceIndexCounter++;
             }
             else
             {
