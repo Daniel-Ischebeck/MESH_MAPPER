@@ -33,16 +33,21 @@ bool calcTriangleAreas(std::vector<Point> &listOfPoints,
                        std::vector<Face> &listOfFaces,
                        std::vector<double> &listOfAreas);
 
+
+bool outputUVfile(std::vector<Face> &listOfFaces,
+                  Eigen::MatrixXi &faceMatrix,                   
+                  Eigen::VectorXd &u_coords,
+                  Eigen::VectorXd &v_coords,
+                  std::string filePath);            //testing face matrix and witing it to file
+
+
 // briefly have a global varible for eigen matrix of faces
 // igl boundary loop test
-
 
 std::vector<std::vector<int>> faces;
 
 int main()
 {
-
-
 
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
@@ -62,8 +67,7 @@ int main()
         return (-1);
     }
 
-
-//
+    //
     Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
     for (int i = 0; i < listOfFaces.size(); i++)
     {
@@ -79,14 +83,6 @@ int main()
               << boundaryVerticies << std::endl;
     std::cout << "\n\nPinned Verticies\n"
               << pinnedVerticies << std::endl;
-
-
-
-
-
-
-
-
 
     // assign to sparse matrix
     //  if vertex j belongs to triangle i, do some calc and place number, otherwise zero.
@@ -194,7 +190,7 @@ int main()
     A_Mf1.conservativeResize(numRows, numCols);
     A_Mf2.conservativeResize(numRows, numCols);
 
-    colToRemove = pinnedVerticies(1)-1; // as weve resized, to remove what was the 6, now 5
+    colToRemove = pinnedVerticies(1) - 1; // as weve resized, to remove what was the 6, now 5
     numRows = A_Mf1.rows();
     numCols = A_Mf1.cols() - 1;
     if (colToRemove < numCols)
@@ -234,7 +230,7 @@ int main()
               << A << "\n\n"
               << std::endl;
 
-    Eigen::MatrixXd Bmat_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 4);
+    Eigen::MatrixXd Bmat_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 4); // 4 as two pinned verticeis
     Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 4);
     Eigen::MatrixXd Bmat = Eigen::MatrixXd::Zero(2 * listOfFaces.size(), 4);
 
@@ -250,8 +246,8 @@ int main()
               << Bmat << "\n\n"
               << std::endl;
 
-    Eigen::VectorXd pinnedUV(4, 1);
-    pinnedUV << 0, 1, 0, 0; // choosing to pin in UV space, one coord at (1,1) other at (10,10)
+    Eigen::VectorXd pinnedUV(4, 1); // will always pin two coords, therefore 4 points
+    pinnedUV << 0, 1, 0, 0;         // choosing to pin in UV space, one coord at (0,0), (1,0)   //is this sensible for all shapes?
     std::cout << "Pinned UV:\n\n"
               << pinnedUV << "\n\n"
               << std::endl;
@@ -266,16 +262,129 @@ int main()
     //     //<< A.template bdcSvd<Eigen::ComputeThinU | Eigen::ComputeThinV>().solve(Bmat) << std::endl;
     //      << A.colPivHouseholderQr().solve(RHS);
 
-    Eigen::MatrixXd solution(listOfFaces.size() + 2, 1);
+    Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
     solution = A.colPivHouseholderQr().solve(RHS);
 
-    std::cout << "Solution:\n\n"
+    std::cout << "Least-Squares Solution (U coords, then V):\n\n"
               << solution << std::endl;
 
     //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
     //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
 
+    // Now we have a list of u coordinates, followed by v coordinates
+    /*We want to plot these on the UV plane
+    However this list does not contain the pinned coordiantes
+    First create a new list and insert the pinned coordiantes in the right place
+    The results can then be written to a tri file*/
+
+    // for dome example we have u coords u0-3, u5-7, v0-3, v5-7
+    //  pinned coord vector has, u4,u6, v4, v6
+
+    // pinnedVerticies(0) and 1 - in this case 4 and 6
+
+    Eigen::VectorXd u_coords(listOfPoints.size(), 1);
+    Eigen::VectorXd v_coords(listOfPoints.size(), 1);
+    // efficency concerns of adding in the middle of a vector
+    /*
+    pre first pinned    //from zero to one before pinned
+    first pinned        //firt pinned
+    post first pinned   //from first pinned to one before second pinned
+    second  pinned      //second pinned
+    post second pinned  //from second pinned till the end
+
+    this is all for u
+
+    //but pinned may be first or last?? worry about this if it happens?*/
+
+    for (int i = 0; i < pinnedVerticies(0); i++)
+    {
+        u_coords(i) = solution(i);
+    }
+
+    u_coords(pinnedVerticies(0)) = pinnedUV(0); // first pinned coord, u
+
+    for (int i = pinnedVerticies(0) + 1; i < pinnedVerticies(1); i++)
+    {
+        u_coords(i) = solution(i - 1); // i-1 as solution index as at this point weve passed one pinned point
+    }
+
+    u_coords(pinnedVerticies(1)) = pinnedUV(1); // second pinned coord, u
+
+    for (int i = pinnedVerticies(1) + 1; i < listOfPoints.size(); i++)
+    {
+        u_coords(i) = solution(i - 2); // now weve passed two pinned points
+    }
+
+    std::cout << "\nU coords:\n"
+              << u_coords << "\n"
+              << std::endl;
+
+    //--------------v
+    // soltuion.rows() is 12, therefore over 2 is 6 - the first of v coords
+
+    int j = 0;
+    for (int i = solution.rows() / 2; i < pinnedVerticies(0) + solution.rows() / 2; i++) // 6;10
+    {
+        v_coords(j) = solution(i);
+        j++;
+    }
+
+    v_coords(pinnedVerticies(0)) = pinnedUV(2);
+    j++;
+
+    for (int i = pinnedVerticies(0) + 1 + solution.rows() / 2; i < pinnedVerticies(1) + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i - 1);
+        j++;
+    }
+
+    v_coords(pinnedVerticies(1)) = pinnedUV(3);
+    j++;
+
+    for (int i = pinnedVerticies(1) + 1 + solution.rows() / 2; i < listOfPoints.size() + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i - 2);
+        j++;
+    }
+
+    std::cout << "\nV coords:\n"
+              << v_coords << "\n\n"
+              << std::endl;
+
+    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
+
+
     return 0;
+}
+
+bool outputUVfile(std::vector<Face> &listOfFaces,
+                  Eigen::MatrixXi &faceMatrix,          
+                  Eigen::VectorXd &u_coords,
+                  Eigen::VectorXd &v_coords,
+                  std::string filePath)             //testing face matrix
+{
+
+    std::ofstream outputUVfile;
+    outputUVfile.open(filePath);    //file name or file path
+
+
+    outputUVfile << u_coords.rows() << " 2 0\n";    //uv output points will always have 2 dimensions and 0 attributes
+    for(int i=0; i<u_coords.rows(); i++)
+    {
+        outputUVfile << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
+    }
+
+    outputUVfile << listOfFaces.size() << " 3 0\n";     //these attribute values may change later
+    //outputUVfile << faceMatrix << "\n";
+    for(int i=0; i<listOfFaces.size(); i++)
+    {
+        outputUVfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex()<< " " << listOfFaces.at(i).get_cIndex() << "\n";
+    }
+
+    outputUVfile << "Random\n";
+    
+
+    return true;
 }
 
 bool readFile(std::vector<Point> &listOfPoints,
@@ -344,7 +453,7 @@ bool readFile(std::vector<Point> &listOfPoints,
                         << "Attributes: " << numAttrPF << "\n\n";
 
                     listOfFaces.resize(numFaces);
-                    faces.resize(numFaces, std::vector<int>(numVertPF));    
+                    faces.resize(numFaces, std::vector<int>(numVertPF));
                 }
             }
             else if (currentLine > numPoints + 2 && currentLine < numPoints + numFaces + 3)
@@ -375,6 +484,7 @@ bool readFile(std::vector<Point> &listOfPoints,
 bool calcTriangleAreas(std::vector<Point> &listOfPoints, // make const - need to alter classes of Point and face
                        std::vector<Face> &listOfFaces,
                        std::vector<double> &listOfAreas)
+
 {
 
     // loop through the list of faces, for each face get the points, then use these in calc
