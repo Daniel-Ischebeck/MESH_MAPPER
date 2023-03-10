@@ -13,6 +13,8 @@
 // #include <Eigen/Core>
 //
 
+#include <chrono> //for timing execution
+
 #include <Eigen/Dense>
 
 #include <igl/boundary_loop.h>
@@ -50,11 +52,11 @@ std::vector<std::vector<int>> faces;
 
 int main()
 {
-
+    std::chrono::steady_clock::time_point overallBegin = std::chrono::steady_clock::now();
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "../files/part_sphere_high.tri";
+    std::string filePath = "../files/part_sphere_low.tri";
 
     if (!readFile(listOfPoints, listOfFaces, filePath))
     {
@@ -221,9 +223,9 @@ int main()
         }
     }
 
-    std::cout << "\n\nFilled matrix M:\n\n";
-    std::cout << M << "\n\n"
-              << std::endl;
+    // std::cout << "\n\nFilled matrix M:\n\n";
+    // std::cout << M << "\n\n"
+    //           << std::endl;
 
     // std::cout << "\n\nA_Mf1:\n\n";
     // std::cout << A_Mf1 << "\n\n"
@@ -295,8 +297,8 @@ int main()
     */
     std::cout << "listofFaces size: " << listOfFaces.size() << "   listofpoint size: " << listOfPoints.size() << "\n";
 
-    Eigen::MatrixXd A_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 2*(listOfPoints.size() - 2));
-    Eigen::MatrixXd A_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 2*(listOfPoints.size() - 2));
+    Eigen::MatrixXd A_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    Eigen::MatrixXd A_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
     // A is 2(numFaces) x 2(numPoints-numPinnedpoints) matrix
 
@@ -344,11 +346,18 @@ int main()
     //      << A.colPivHouseholderQr().solve(RHS);
 
     Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
+
+    std::cout << "Calculating...\n";
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
     solution = A.colPivHouseholderQr().solve(RHS);
 
-    std::cout << "Least-Squares Solution (U coords, then V):\n\n"
-              << solution << std::endl;
+    // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
+    //           << solution << std::endl;
 
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Time for calc (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()/1000000.0  << std::endl;
     //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
     //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
 
@@ -434,6 +443,10 @@ int main()
 
     outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
 
+    std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
+    std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count()/1000000.0  << std::endl;
+
+
     return 0;
 }
 
@@ -461,6 +474,9 @@ bool outputUVfile(std::vector<Face> &listOfFaces,
     }
 
     outputUVfile << "Random\n";
+    
+
+
 
     return true;
 }
@@ -539,7 +555,7 @@ bool readFile(std::vector<Point> &listOfPoints,
             {
                 // formatting for points
                 // std::cout << "**Line: " << currentLine << "\n";
-                std::cout << _pointIndex << " " << _x << " " << _y << " " << _z << "\n";
+                // std::cout << _pointIndex << " " << _x << " " << _y << " " << _z << "\n";
                 listOfPoints.at(_pointIndex) = Point(_pointIndex, _x, _y, _z);
             }
             else if ((currentLine == numPoints + 2))
@@ -573,7 +589,7 @@ bool readFile(std::vector<Point> &listOfPoints,
                 // std::cout << "!Line: " << currentLine << "\n";
 
                 // faces arent indexed in phils example, use counter
-                std::cout << faceIndexCounter << " " << _aIndex << " " << _bIndex << " " << _cIndex << "\n";
+                // std::cout << faceIndexCounter << " " << _aIndex << " " << _bIndex << " " << _cIndex << "\n";
                 listOfFaces.at(faceIndexCounter) = Face(faceIndexCounter, _aIndex, _bIndex, _cIndex);
 
                 // testing eigen matrix of faces for boundary loop
