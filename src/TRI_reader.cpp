@@ -1,3 +1,5 @@
+
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -19,7 +21,7 @@
 
 #include <Eigen/Sparse>
 
-//#include <Eigen/OrderingMethods>    //for part of sparseqrsolver?
+// #include <Eigen/OrderingMethods>    //for part of sparseqrsolver?
 
 #include <igl/boundary_loop.h>
 
@@ -60,7 +62,7 @@ int main()
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "../files/part_sphere_high.tri";
+    std::string filePath = "../files/part_sphere_low.tri";
 
     if (!readFile(listOfPoints, listOfFaces, filePath))
     {
@@ -249,7 +251,7 @@ int main()
 
     // pinning verticies
 
-    Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
+    Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2); // dont think need these to be zero initalised, remove later, just working on something else rn
     Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
     int testing = listOfFaces.size();
     // template paramters need to be known at compile time
@@ -287,24 +289,8 @@ int main()
     Eigen::SparseMatrix<double> A_Mf1_p1, A_Mf1_p2, A_Mf1_p3, A_Mf1_temp, A_Mf1_final;
 
     A_Mf1_p1 = A_Mf1.block(0, 0, numRows, pinnedVerticies(0));
-    A_Mf1_p2 = A_Mf1.block(0, pinnedVerticies(0) + 1, numRows, pinnedVerticies(1) - pinnedVerticies(0) - 1); // pinnedVerticies(1) - pinnedVerticies(0) = 69-64=5
-    A_Mf1_p3 = A_Mf1.block(0, pinnedVerticies(1) + 1, numRows, numCols - pinnedVerticies(1));                //+1 to account for //numCols - pinnedVerticies(1)  = 73-69=4
-
-    // std::cout << "Dimensions p1: " << A_Mf1_p1.rows() << " x " << A_Mf1_p1.cols() << "\n";
-    // std::cout << "Dimensions p2: " << A_Mf1_p2.rows() << " x " << A_Mf1_p2.cols() << "\n";
-    // std::cout << "Dimensions p3: " << A_Mf1_p3.rows() << " x " << A_Mf1_p3.cols() << "\n";
-
-    // std::cout << "\n\nA_Mf1_p1:\n\n";
-    // std::cout << Eigen::MatrixXd(A_Mf1_p1) << "\n\n"
-    //           << std::endl;
-
-    // std::cout << "\n\nA_Mf1_p2:\n\n";
-    // std::cout << Eigen::MatrixXd(A_Mf1_p2) << "\n\n"
-    //           << std::endl;
-
-    // std::cout << "\n\nA_Mf1_p3:\n\n";
-    // std::cout << Eigen::MatrixXd(A_Mf1_p3) << "\n\n"
-    //           << std::endl;
+    A_Mf1_p2 = A_Mf1.block(0, pinnedVerticies(0) + 1, numRows, pinnedVerticies(1) - pinnedVerticies(0) - 1);
+    A_Mf1_p3 = A_Mf1.block(0, pinnedVerticies(1) + 1, numRows, numCols - pinnedVerticies(1));
 
     // COmbine 1 with 2, into a temp, then combine temp with 3 to make final
 
@@ -318,17 +304,17 @@ int main()
     A_Mf1_final.middleCols(0, A_Mf1_temp.cols()) = A_Mf1_temp;
     A_Mf1_final.middleCols(A_Mf1_temp.cols(), A_Mf1_p3.cols()) = A_Mf1_p3;
 
-    //std::cout << "Dimensions A_Mf1_final: " << A_Mf1_final.rows() << " x " << A_Mf1_final.cols() << "\n";
+    // std::cout << "Dimensions A_Mf1_final: " << A_Mf1_final.rows() << " x " << A_Mf1_final.cols() << "\n";
 
-    std::ofstream sparseMatrixfile;
-    sparseMatrixfile.open("sparse_A_Mf1.txt");
-    sparseMatrixfile << Eigen::MatrixXd(A_Mf1_final); // Need to convert to dense for representation
+    // std::ofstream sparseMatrixfile;
+    // sparseMatrixfile.open("sparse_A_Mf1.txt");
+    // sparseMatrixfile << Eigen::MatrixXd(A_Mf1_final); // Need to convert to dense for representation
 
     // A_Mf2################################
     Eigen::SparseMatrix<double> A_Mf2_p1, A_Mf2_p2, A_Mf2_p3, A_Mf2_temp, A_Mf2_final;
 
     A_Mf2_p1 = A_Mf2.block(0, 0, numRows, pinnedVerticies(0));
-    A_Mf2_p2 = A_Mf2.block(0, pinnedVerticies(0) + 1, numRows, pinnedVerticies(1) - pinnedVerticies(0) - 1); // pinnedVerticies(1) - pinnedVerticies(0) = 69-64=5
+    A_Mf2_p2 = A_Mf2.block(0, pinnedVerticies(0) + 1, numRows, pinnedVerticies(1) - pinnedVerticies(0) - 1);
     A_Mf2_p3 = A_Mf2.block(0, pinnedVerticies(1) + 1, numRows, numCols - pinnedVerticies(1));
 
     A_Mf2_temp.resize(A_Mf2_p1.rows(), A_Mf2_p1.cols() + A_Mf2_p2.cols());
@@ -341,10 +327,7 @@ int main()
     A_Mf2_final.middleCols(0, A_Mf2_temp.cols()) = A_Mf2_temp;
     A_Mf2_final.middleCols(A_Mf2_temp.cols(), A_Mf2_p3.cols()) = A_Mf2_p3;
 
-    //std::cout << "Dimensions A_Mf2_final: " << A_Mf2_final.rows() << " x " << A_Mf2_final.cols() << "\n";
-
-
-
+    // std::cout << "Dimensions A_Mf2_final: " << A_Mf2_final.rows() << " x " << A_Mf2_final.cols() << "\n";
 
     /*
     from zero to column of first pinned,*/
@@ -370,7 +353,7 @@ int main()
     Eigen::SparseMatrix<double> A_top(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
     Eigen::SparseMatrix<double> A_bottom(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
     Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    //Eigen::SparseMatrix<double> A(listOfFaces.size(), 4 * (listOfPoints.size() - 2)); /// wrong, if concatting verticallly
+    // Eigen::SparseMatrix<double> A(listOfFaces.size(), 4 * (listOfPoints.size() - 2)); /// wrong, if concatting verticallly
 
     // for sparse matricies we can't just concat like before
 
@@ -386,7 +369,7 @@ int main()
 
     // A << A_top, A_bottom;   //vertical concat
 
-    // ########################this joining code is for vertically!! 
+    // ########################this joining code is for vertically!!
     A.reserve(A_top.nonZeros() + A_bottom.nonZeros());
     for (Eigen::Index c = 0; c < A_top.cols(); ++c)
     {
@@ -394,10 +377,10 @@ int main()
         for (Eigen::SparseMatrix<double>::InnerIterator it_A_top(A_top, c); it_A_top; ++it_A_top)
             A.insertBack(it_A_top.row(), c) = it_A_top.value();
         for (Eigen::SparseMatrix<double>::InnerIterator it_A_bottom(A_bottom, c); it_A_bottom; ++it_A_bottom)
-            A.insertBack(it_A_bottom.row() + A_top.rows(), c) = -(it_A_bottom.value());
+            A.insertBack(it_A_bottom.row() + A_top.rows(), c) = (it_A_bottom.value());
     }
     A.finalize();
-    
+
     std::cout << "#############  Final things   #########\n\n";
     std::cout << "Dimensions A: " << A.rows() << " x " << A.cols() << "\n";
     // std::cout << "A\n\n"
@@ -425,7 +408,7 @@ int main()
     //           << std::endl;
 
     Eigen::VectorXd pinnedUV(4, 1); // will always pin two coords, therefore 4 points
-    pinnedUV << 0, 1, 0, 0;         // choosing to pin in UV space, one coord at (0,0), (1,0)   //is this sensible for all shapes?
+    pinnedUV << 0, 2, 0, 0;         // choosing to pin in UV space, one coord at (0,0), (1,0)   //is this sensible for all shapes?
     std::cout << "Pinned UV:\n\n"
               << pinnedUV << "\n\n"
               << std::endl;
@@ -444,34 +427,40 @@ int main()
 
     std::cout << "Calculating...\n";
 
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-
     // solution = A.colPivHouseholderQr().solve(RHS);
 
-    //SOlver
-    //Matrix needs to be compressed before it can be used with solver
+    // SOlver
+    // Matrix needs to be compressed before it can be used with solver
     A.makeCompressed();
-
+    std::cout << "Dimensions (post compression) A: " << A.rows() << " x " << A.cols() << "\n";
+    // std::ofstream A_sparseMatrixfile;
+    // A_sparseMatrixfile.open("A_sparse.txt");
+    // A_sparseMatrixfile << Eigen::MatrixXd(A);
 
     Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    std::chrono::steady_clock::time_point begin_compute= std::chrono::steady_clock::now();
     solver.compute(A);
+    std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
+
+    std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
     if (solver.info() != Eigen::Success)
     {
         // decomposition failed
         return -1;
     }
+    std::chrono::steady_clock::time_point begin= std::chrono::steady_clock::now();
     solution = solver.solve(RHS);
     if (solver.info() != Eigen::Success)
     {
         // solving failed
         return -1;
     }
+    std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
 
     // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
     //           << solution << std::endl;
 
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::cout << "Time for calc (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0 << std::endl;
+    std::cout << "Time for solver (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0 << std::endl;
     //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
     //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
 
@@ -480,7 +469,6 @@ int main()
     However this list does not contain the pinned coordiantes
     First create a new list and insert the pinned coordiantes in the right place
     The results can then be written to a tri file*/
-
 
     // // efficency concerns of adding in the middle of a vector
     //
@@ -491,67 +479,66 @@ int main()
     // post second pinned  //from second pinned till the end
 
     // //but pinned may be first or last?? worry about this if it happens?*/
-    
-       Eigen::VectorXd u_coords(listOfPoints.size(), 1);
-       Eigen::VectorXd v_coords(listOfPoints.size(), 1);
 
+    Eigen::VectorXd u_coords(listOfPoints.size(), 1);
+    Eigen::VectorXd v_coords(listOfPoints.size(), 1);
 
-       for (int i = 0; i < pinnedVerticies(0); i++)
-       {
-           u_coords(i) = solution(i);
-       }
+    for (int i = 0; i < pinnedVerticies(0); i++)
+    {
+        u_coords(i) = solution(i);
+    }
 
-       u_coords(pinnedVerticies(0)) = pinnedUV(0); // first pinned coord, u
+    u_coords(pinnedVerticies(0)) = pinnedUV(0); // first pinned coord, u
 
-       for (int i = pinnedVerticies(0) + 1; i < pinnedVerticies(1); i++)
-       {
-           u_coords(i) = solution(i - 1); // i-1 as solution index as at this point weve passed one pinned point
-       }
+    for (int i = pinnedVerticies(0) + 1; i < pinnedVerticies(1); i++)
+    {
+        u_coords(i) = solution(i - 1); // i-1 as solution index as at this point weve passed one pinned point
+    }
 
-       u_coords(pinnedVerticies(1)) = pinnedUV(1); // second pinned coord, u
+    u_coords(pinnedVerticies(1)) = pinnedUV(1); // second pinned coord, u
 
-       for (int i = pinnedVerticies(1) + 1; i < listOfPoints.size(); i++)
-       {
-           u_coords(i) = solution(i - 2); // now weve passed two pinned points
-       }
+    for (int i = pinnedVerticies(1) + 1; i < listOfPoints.size(); i++)
+    {
+        u_coords(i) = solution(i - 2); // now weve passed two pinned points
+    }
 
-       // std::cout << "\nU coords:\n"
-       //           << u_coords << "\n"
-       //           << std::endl;
+    // std::cout << "\nU coords:\n"
+    //           << u_coords << "\n"
+    //           << std::endl;
 
-       //--------------v
+    //--------------v
 
-       int j = 0;
-       for (int i = solution.rows() / 2; i < pinnedVerticies(0) + solution.rows() / 2; i++) 
-       {
-           v_coords(j) = solution(i);
-           j++;
-       }
+    int j = 0;
+    for (int i = solution.rows() / 2; i < pinnedVerticies(0) + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i);
+        j++;
+    }
 
-       v_coords(pinnedVerticies(0)) = pinnedUV(2);
-       j++;
+    v_coords(pinnedVerticies(0)) = pinnedUV(2);
+    j++;
 
-       for (int i = pinnedVerticies(0) + 1 + solution.rows() / 2; i < pinnedVerticies(1) + solution.rows() / 2; i++)
-       {
-           v_coords(j) = solution(i - 1);
-           j++;
-       }
+    for (int i = pinnedVerticies(0) + 1 + solution.rows() / 2; i < pinnedVerticies(1) + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i - 1);
+        j++;
+    }
 
-       v_coords(pinnedVerticies(1)) = pinnedUV(3);
-       j++;
+    v_coords(pinnedVerticies(1)) = pinnedUV(3);
+    j++;
 
-       for (int i = pinnedVerticies(1) + 1 + solution.rows() / 2; i < listOfPoints.size() + solution.rows() / 2; i++)
-       {
-           v_coords(j) = solution(i - 2);
-           j++;
-       }
+    for (int i = pinnedVerticies(1) + 1 + solution.rows() / 2; i < listOfPoints.size() + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i - 2);
+        j++;
+    }
 
-       // std::cout << "\nV coords:\n"
-       //           << v_coords << "\n\n"
-       //           << std::endl;
+    // std::cout << "\nV coords:\n"
+    //           << v_coords << "\n\n"
+    //           << std::endl;
 
-       outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
-   
+    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
+
     std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
     std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
 
