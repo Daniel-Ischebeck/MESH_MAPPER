@@ -7,11 +7,10 @@
 
 #include <chrono> //for timing execution
 
-#include <Eigen/Dense>  // eigen is header only - link in cmake
+#include <Eigen/Dense> // eigen is header only - link in cmake
 #include <Eigen/Sparse>
 
 #include <igl/boundary_loop.h>
-
 
 #include "Point.hpp"
 #include "Face.hpp"
@@ -44,7 +43,7 @@ int main()
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "../files/part_sphere_low.tri";
+    std::string filePath = "../files/radome.tri"; //part_sphere_high
 
     if (!readFile(listOfPoints, listOfFaces, filePath))
     {
@@ -52,7 +51,6 @@ int main()
         return (-1);
     }
 
-   
     // we now need to preprocess before we can perform mapping
     // currently not topologically a disk
 
@@ -60,24 +58,25 @@ int main()
     we want to remove flat bottom of dome
     i.e. triangles that have all verticies in the x-y plane -> z coordinate of all three verticies is the same
     */
-    // #########################triangle removel
+    // #########################triangle removal
     double a, b, c;
     int listOfFacesSizeBefore = listOfFaces.size();
     int numElementsRemoved = 0;
     int numElementsAdded = 0;
     int rowCounter = 0;
 
-    std::vector<Face> newListOfFaces(listOfFacesSizeBefore);
+    // std::vector<Face> newListOfFaces(listOfFacesSizeBefore);
 
     for (int i = 0; i < listOfFacesSizeBefore; i++)
     {
-        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
-        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
-        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
-        // std::cout << a << "\n";
-        // std::cout << b << "\n";
-        // std::cout << c << "\n";
-        // std::cout << "\n\n";
+        // a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
+        // b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
+        // c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
+
+        // For radome - its y coordinate for bottom faces
+        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
+        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
+        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
 
         // copy elements that are NOT part of the base into a new list which will now use
         if (!((a == b) && (b == c)))
@@ -143,15 +142,13 @@ int main()
     std::cout << "\n\nPinned Verticies\n"
               << pinnedVerticies << std::endl;
 
-
-
     std::cout << "\n\n\n\n";
     Eigen::SparseMatrix<double> M(listOfFaces.size(), listOfPoints.size());
     Eigen::SparseMatrix<double> A_Mf1(listOfFaces.size(), listOfPoints.size());
     Eigen::SparseMatrix<double> A_Mf2(listOfFaces.size(), listOfPoints.size());
     // assign to sparse matrix
     // if vertex j belongs to triangle i, do some calc and place number, otherwise zero.
-    //look at index numbers of triangle, and compare these to j, if theres a match, vertex j is part of triangle i
+    // look at index numbers of triangle, and compare these to j, if theres a match, vertex j is part of triangle i
 
     for (int i = 0; i < listOfFaces.size(); i++)
     { // loop through the triangles
@@ -339,7 +336,7 @@ int main()
 
     // A << A_top, A_bottom;   //vertical concat
 
-    //joining code is for vertically!!
+    // joining code is for vertically!!
     A.reserve(A_top.nonZeros() + A_bottom.nonZeros());
     for (Eigen::Index c = 0; c < A_top.cols(); ++c)
     {
@@ -356,7 +353,6 @@ int main()
     // std::cout << "A\n\n"
     //           << A << "\n\n"
     //           << std::endl;
-
 
     Eigen::MatrixXd Bmat_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 4); // 4 as two pinned verticeis
     Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 4);
@@ -687,4 +683,3 @@ bool calcTriangleAreas(std::vector<Point> &listOfPoints, // make const - need to
     }
     return true;
 }
-
