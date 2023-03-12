@@ -10,6 +10,8 @@
 #include <Eigen/Dense> // eigen is header only - link in cmake
 #include <Eigen/Sparse>
 
+#include<Eigen/IterativeLinearSolvers>	
+
 #include <igl/boundary_loop.h>
 
 #include "Point.hpp"
@@ -43,7 +45,7 @@ int main()
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "../files/radome.tri"; //part_sphere_high
+    std::string filePath = "../files/part_sphere_v_high.tri"; //part_sphere_high
 
     if (!readFile(listOfPoints, listOfFaces, filePath))
     {
@@ -69,14 +71,14 @@ int main()
 
     for (int i = 0; i < listOfFacesSizeBefore; i++)
     {
-        // a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
-        // b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
-        // c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
+        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
+        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
+        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
 
         // For radome - its y coordinate for bottom faces
-        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
-        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
-        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
+        // a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
+        // b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
+        // c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
 
         // copy elements that are NOT part of the base into a new list which will now use
         if (!((a == b) && (b == c)))
@@ -400,26 +402,32 @@ int main()
     // A_sparseMatrixfile.open("A_sparse.txt");
     // A_sparseMatrixfile << Eigen::MatrixXd(A);
 
-    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    //Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double> > lscg;
+
     std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
-    solver.compute(A);
+    //solver.compute(A);
+    lscg.compute(A);
     std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
-
     std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
-    if (solver.info() != Eigen::Success)
-    {
-        // decomposition failed
-        return -1;
-    }
-    std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
-    solution = solver.solve(RHS);
-    std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
-    if (solver.info() != Eigen::Success)
-    {
-        // solving failed
-        return -1;
-    }
+    
+    // if (solver.info() != Eigen::Success)
+    // {
+    //     // decomposition failed
+    //     return -1;
+    // }
 
+    std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
+    //solution = solver.solve(RHS);
+    solution = lscg.solve(RHS);
+    std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
+    // if (solver.info() != Eigen::Success) //should this be solution###########################
+    // {
+    //     // solving failed
+    //     return -1;
+    // }
+    std::cout << "#iterations:     " << lscg.iterations() << std::endl;
+    std::cout << "estimated error: " << lscg.error()      << std::endl;
     // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
     //           << solution << std::endl;
 
