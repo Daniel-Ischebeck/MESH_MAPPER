@@ -10,7 +10,8 @@
 #include <Eigen/Dense> // eigen is header only - link in cmake
 #include <Eigen/Sparse>
 
-#include<Eigen/IterativeLinearSolvers>	
+#include <Eigen/IterativeLinearSolvers>
+#include <Eigen/Geometry> //for rotation
 
 #include <igl/boundary_loop.h>
 
@@ -38,14 +39,16 @@ bool outputTRIfile(std::vector<Point> &listOfPoints,
 // briefly have a global varible for eigen matrix of faces
 // igl boundary loop test
 std::vector<std::vector<int>> faces;
+std::vector<std::vector<double>> points;
 
+Eigen::MatrixXd pointMatrix(1961, 3);
 int main()
 {
     std::chrono::steady_clock::time_point overallBegin = std::chrono::steady_clock::now();
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "../files/part_sphere_v_high.tri"; //part_sphere_high
+    std::string filePath = "../files/radome.tri"; // part_sphere_high
 
     if (!readFile(listOfPoints, listOfFaces, filePath))
     {
@@ -54,7 +57,40 @@ int main()
     }
 
     // we now need to preprocess before we can perform mapping
-    // currently not topologically a disk
+    // e.g. currently not topologically a disk
+
+    // ########################
+    // Rotate the radome
+    // first need to have a point matrix, and then rotate this
+
+    //Eigen::MatrixXd pointMatrix(listOfPoints.size(), 3);
+
+    //points.resize(1961, std::vector<double>(3));
+
+    for (int i = 0; i < listOfPoints.size(); i++)
+    {
+        pointMatrix.row(i) = Eigen::VectorXd::Map(&points[i][0], points[i].size());
+    }
+    // std::cout << pointMatrix << "\n\n";
+
+    //Eigen::AngleAxisd rotate(3.14159, Eigen::Vector3d(0, 2.15, 0)); // M_PI
+    Eigen::AngleAxisd rollAngle(3.14/2, Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd yawAngle(1.3, Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd pitchAngle(0.3, Eigen::Vector3d::UnitX());
+
+    Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+
+    Eigen::Matrix3d rotationMatrix = q.matrix();
+
+    pointMatrix = pointMatrix * rotationMatrix;
+
+    //loop through list of points and change the values, leave the indexes
+    //gonna require set functions for point
+    
+
+    //very bad global point matrix - fix this
+        outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
+
 
     /*
     we want to remove flat bottom of dome
@@ -71,14 +107,14 @@ int main()
 
     for (int i = 0; i < listOfFacesSizeBefore; i++)
     {
-        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
-        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
-        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
+        // a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
+        // b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
+        // c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
 
         // For radome - its y coordinate for bottom faces
-        // a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
-        // b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
-        // c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
+        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
+        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
+        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
 
         // copy elements that are NOT part of the base into a new list which will now use
         if (!((a == b) && (b == c)))
@@ -94,6 +130,9 @@ int main()
             faces[rowCounter][0] = listOfFaces.at(i).get_aIndex();
             faces[rowCounter][1] = listOfFaces.at(i).get_bIndex();
             faces[rowCounter][2] = listOfFaces.at(i).get_cIndex();
+
+
+
             rowCounter++;
         }
     }
@@ -132,7 +171,7 @@ int main()
         return (-1);
     }
 
-    outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
+    //outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
 
     Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
     igl::boundary_loop(faceMatrix, boundaryVerticies);
@@ -402,15 +441,15 @@ int main()
     // A_sparseMatrixfile.open("A_sparse.txt");
     // A_sparseMatrixfile << Eigen::MatrixXd(A);
 
-    //Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double> > lscg;
+    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
 
     std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
-    //solver.compute(A);
+    // solver.compute(A);
     lscg.compute(A);
     std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
     std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
-    
+
     // if (solver.info() != Eigen::Success)
     // {
     //     // decomposition failed
@@ -418,7 +457,7 @@ int main()
     // }
 
     std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
-    //solution = solver.solve(RHS);
+    // solution = solver.solve(RHS);
     solution = lscg.solve(RHS);
     std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
     // if (solver.info() != Eigen::Success) //should this be solution###########################
@@ -427,7 +466,7 @@ int main()
     //     return -1;
     // }
     std::cout << "#iterations:     " << lscg.iterations() << std::endl;
-    std::cout << "estimated error: " << lscg.error()      << std::endl;
+    std::cout << "estimated error: " << lscg.error() << std::endl;
     // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
     //           << solution << std::endl;
 
@@ -555,9 +594,12 @@ bool outputTRIfile(std::vector<Point> &listOfPoints,
     outputTRIfile << listOfPoints.size() << " 3 0\n"; // uv output points will always have 2 dimensions and 0 attributes
     for (int i = 0; i < listOfPoints.size(); i++)
     {
-        outputTRIfile << i << " " << listOfPoints.at(i).get_x() << " "
-                      << listOfPoints.at(i).get_y() << " "
-                      << listOfPoints.at(i).get_z() << "\n";
+        // outputTRIfile << i << " " << listOfPoints.at(i).get_x() << " "
+        //               << listOfPoints.at(i).get_y() << " "
+        //               << listOfPoints.at(i).get_z() << "\n";
+        outputTRIfile << i << " " << pointMatrix(i,0) << " "
+                      << pointMatrix(i,1) << " "
+                      << pointMatrix(i,2)<< "\n";
     }
 
     outputTRIfile << listOfFaces.size() << " 3 0\n"; // these attribute values may change later
@@ -590,6 +632,7 @@ bool readFile(std::vector<Point> &listOfPoints,
     int numFaces, numVertPF, numAttrPF;
 
     int faceIndexCounter = 0;
+    int pointIndexCounter = 0;
 
     while (getline(inputTRIFile, line))
     {
@@ -613,6 +656,7 @@ bool readFile(std::vector<Point> &listOfPoints,
                     << "Attributes: " << numAttrPP << "\n\n";
 
                 listOfPoints.resize(numPoints);
+                points.resize(numPoints, std::vector<double>(numDimensions));
             }
             else if ((iss >> _pointIndex >> _x >> _y >> _z) && currentLine < numPoints + 2)
             {
@@ -620,6 +664,12 @@ bool readFile(std::vector<Point> &listOfPoints,
                 // std::cout << "**Line: " << currentLine << "\n";
                 // std::cout << _pointIndex << " " << _x << " " << _y << " " << _z << "\n";
                 listOfPoints.at(_pointIndex) = Point(_pointIndex, _x, _y, _z);
+
+                points[pointIndexCounter][0] = _x;
+                points[pointIndexCounter][1] = _y;
+                points[pointIndexCounter][2] = _z;
+
+                pointIndexCounter++;
             }
             else if ((currentLine == numPoints + 2))
             { //(iss>>numFaces>>numVertPF>>numAttrPF) &&
