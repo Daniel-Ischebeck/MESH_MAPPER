@@ -1,4 +1,3 @@
-//########################################FINDME#############################
 
 #include <iostream>
 #include <fstream>
@@ -18,10 +17,6 @@
 #include <chrono> //for timing execution
 
 #include <Eigen/Dense>
-
-#include <Eigen/Sparse>
-
-// #include <Eigen/OrderingMethods>    //for part of sparseqrsolver?
 
 #include <igl/boundary_loop.h>
 
@@ -62,7 +57,7 @@ int main()
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "../files/part_sphere_low.tri";
+    std::string filePath = "../files/part_sphere_high.tri";
 
     if (!readFile(listOfPoints, listOfFaces, filePath))
     {
@@ -84,7 +79,6 @@ int main()
     we want to remove flat bottom of dome
     i.e. triangles that have all verticies in the x-y plane -> z coordinate of all three verticies is the same
     */
-    // #########################triangle removel
     double a, b, c;
     int listOfFacesSizeBefore = listOfFaces.size();
     int numElementsRemoved = 0;
@@ -129,12 +123,12 @@ int main()
     listOfFaces.resize(numElementsAdded);
 
     // face matrix also needs updating!
-
-    // faces.resize(numFaces, std::vector<int>(numVertPF));
-    //             faces[faceIndexCounter][0] = _aIndex;
-    //             faces[faceIndexCounter][1] = _bIndex;
-    //             faces[faceIndexCounter][2] = _cIndex;
-
+    /*
+    faces.resize(numFaces, std::vector<int>(numVertPF));
+                faces[faceIndexCounter][0] = _aIndex;
+                faces[faceIndexCounter][1] = _bIndex;
+                faces[faceIndexCounter][2] = _cIndex;
+    */
     faces.resize(numElementsAdded, std::vector<int>(3)); // always 3  verticies per row
 
     Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
@@ -172,14 +166,11 @@ int main()
     // look at index numbers of triangle, and compare these to j, if theres a match, vertex j is part of triangle i
 
     std::cout << "\n\n\n\n";
-    Eigen::SparseMatrix<double> M(listOfFaces.size(), listOfPoints.size());
-    // Eigen::MatrixXd M = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
+    Eigen::MatrixXd M = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
     // would be sparse in reality, dense for now
 
-    Eigen::SparseMatrix<double> A_Mf1(listOfFaces.size(), listOfPoints.size());
-    Eigen::SparseMatrix<double> A_Mf2(listOfFaces.size(), listOfPoints.size());
-    // Eigen::MatrixXd A_Mf1 = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
-    // Eigen::MatrixXd A_Mf2 = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
+    Eigen::MatrixXd A_Mf1 = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
+    Eigen::MatrixXd A_Mf2 = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
 
     for (int i = 0; i < listOfFaces.size(); i++)
     { // loop through the triangles
@@ -190,85 +181,77 @@ int main()
             if (listOfFaces.at(i).get_aIndex() == j) // Weight 1
             {
                 // real part x3-x2
-                // M(i, j) = 1;
-                M.insert(i, j) = 1; // for sparse we need .insert()
-                A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() -
-                                      listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) /
-                                     sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
-                                                                   // because dividing by sqrt of negative, should this be in complex part?
+                M(i, j) = 1;
+                A_Mf1(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() -
+                               listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) /
+                              sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
+                                                            // because dividing by sqrt of negative, should this be in complex part?
 
                 // complex part y3-y2
-                A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() -
-                                      listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) /
-                                     sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
-                                                                   // because dividing by sqrt of negative, should this be in complex part?
+                A_Mf2(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() -
+                               listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) /
+                              sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
+                                                            // because dividing by sqrt of negative, should this be in complex part?
             }
 
             if (listOfFaces.at(i).get_bIndex() == j) // Weight 2
             {
                 // real part x1-x2
-                M.insert(i, j) = 2;
-                A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() -
-                                      listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) /
-                                     sqrt(abs(listOfAreas.at(i)));
+                M(i, j) = 2;
+                A_Mf1(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() -
+                               listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) /
+                              sqrt(abs(listOfAreas.at(i)));
 
                 // complex part y1-y3
-                A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
-                                      listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) /
-                                     sqrt(abs(listOfAreas.at(i)));
+                A_Mf2(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
+                               listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) /
+                              sqrt(abs(listOfAreas.at(i)));
             }
 
             if (listOfFaces.at(i).get_cIndex() == j) // Weight 3
             {
                 // real part x2-x1
-                M.insert(i, j) = 3;
-                A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() -
-                                      listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()) /
-                                     sqrt(abs(listOfAreas.at(i)));
+                M(i, j) = 3;
+                A_Mf1(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() -
+                               listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()) /
+                              sqrt(abs(listOfAreas.at(i)));
 
                 // complex part y2-y1
-                A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
-                                      listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()) /
-                                     sqrt(abs(listOfAreas.at(i)));
+                A_Mf2(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
+                               listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()) /
+                              sqrt(abs(listOfAreas.at(i)));
             }
         }
     }
 
     // std::cout << "\n\nFilled matrix M:\n\n";
-    // std::cout << Eigen::MatrixXd(M) << "\n\n"
-    //           << std::endl; // for nice formatting of sparse convert to dense
+    // std::cout << M << "\n\n"
+    //           << std::endl;
 
     // std::cout << "\n\nA_Mf1:\n\n";
-    // std::cout << Eigen::MatrixXd(A_Mf1) << "\n\n"
+    // std::cout << A_Mf1 << "\n\n"
     //           << std::endl;
 
     // std::cout << "\n\nA_Mf2:\n\n";
-    // std::cout << Eigen::MatrixXd(A_Mf2) << "\n\n"
+    // std::cout << A_Mf2 << "\n\n"
     //           << std::endl;
 
     // we want to copy pinned coordinate data to its own thing, remove these from the matrix
     // and resize the matrix
 
     // pinning verticies
-
-    Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2); // dont think need these to be zero initalised, remove later, just working on something else rn
+    Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
     Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
     int testing = listOfFaces.size();
     // template paramters need to be known at compile time
     // b_Mp1 << A_Mf1.block<testing, 1>(0, pinnedVerticies(0)), A_Mf1.block<testing, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
-
-    // You can't just concatenate sparse matricies
-
-    // b_Mp1 << A_Mf1.col(pinnedVerticies(0)), A_Mf1.col(pinnedVerticies(1));
-
-    // when extracting from sparse and copying to eigen need to first construct vector
-    b_Mp1 << Eigen::VectorXd(A_Mf1.col(pinnedVerticies(0))), Eigen::VectorXd(A_Mf1.col(pinnedVerticies(1)));
+    b_Mp1 << A_Mf1.col(pinnedVerticies(0)), A_Mf1.col(pinnedVerticies(1));
     // std::cout << "\n\nb_Mp1:\n\n";
     // std::cout << b_Mp1 << "\n\n"
     //           << std::endl;
 
     // b_Mp2 << A_Mf2.block<10, 1>(0, pinnedVerticies(0)), A_Mf2.block<10, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
-    b_Mp2 << Eigen::VectorXd(A_Mf2.col(pinnedVerticies(0))), Eigen::VectorXd(A_Mf2.col(pinnedVerticies(1)));
+    b_Mp2 << A_Mf2.col(pinnedVerticies(0)), A_Mf2.col(pinnedVerticies(1));
     // std::cout << "\n\nb_Mp2:\n\n";
     // std::cout << b_Mp2 << "\n\n"
     //           << std::endl;
@@ -279,59 +262,24 @@ int main()
     auto numRows = A_Mf1.rows();
     auto numCols = A_Mf1.cols() - 1;
 
-    // Eigen::SparseMatrix<double> anotherMatrix;
+    if (colToRemove < numCols)
+    {
+        A_Mf1.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf1.block(0, colToRemove + 1, numRows, numCols - colToRemove);
+        A_Mf2.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf2.block(0, colToRemove + 1, numRows, numCols - colToRemove);
+    }
+    A_Mf1.conservativeResize(numRows, numCols);
+    A_Mf2.conservativeResize(numRows, numCols);
 
-    // anotherMatrix = A_Mf1.block(10, 10, 10, 10); // start row, start column, blockRows, block collums
-    // std::cout << "anothermatrix\n"
-    //           << anotherMatrix << "\n\n"
-    //           << std::endl;
-
-    Eigen::SparseMatrix<double> A_Mf1_p1, A_Mf1_p2, A_Mf1_p3, A_Mf1_temp, A_Mf1_final;
-
-    A_Mf1_p1 = A_Mf1.block(0, 0, numRows, pinnedVerticies(0));
-    A_Mf1_p2 = A_Mf1.block(0, pinnedVerticies(0) + 1, numRows, pinnedVerticies(1) - pinnedVerticies(0) - 1);
-    A_Mf1_p3 = A_Mf1.block(0, pinnedVerticies(1) + 1, numRows, numCols - pinnedVerticies(1));
-
-    // COmbine 1 with 2, into a temp, then combine temp with 3 to make final
-
-    A_Mf1_temp.resize(A_Mf1_p1.rows(), A_Mf1_p1.cols() + A_Mf1_p2.cols());
-    A_Mf1_temp.middleCols(0, A_Mf1_p1.cols()) = A_Mf1_p1;
-    A_Mf1_temp.middleCols(A_Mf1_p1.cols(), A_Mf1_p2.cols()) = A_Mf1_p2;
-
-    // std::cout << "Dimensions temp: " << A_Mf1_temp.rows() << " x " << A_Mf1_temp.cols() << "\n";
-
-    A_Mf1_final.resize(A_Mf1_temp.rows(), A_Mf1_temp.cols() + A_Mf1_p3.cols());
-    A_Mf1_final.middleCols(0, A_Mf1_temp.cols()) = A_Mf1_temp;
-    A_Mf1_final.middleCols(A_Mf1_temp.cols(), A_Mf1_p3.cols()) = A_Mf1_p3;
-
-    // std::cout << "Dimensions A_Mf1_final: " << A_Mf1_final.rows() << " x " << A_Mf1_final.cols() << "\n";
-
-    // std::ofstream sparseMatrixfile;
-    // sparseMatrixfile.open("sparse_A_Mf1.txt");
-    // sparseMatrixfile << Eigen::MatrixXd(A_Mf1_final); // Need to convert to dense for representation
-
-    // A_Mf2################################
-    Eigen::SparseMatrix<double> A_Mf2_p1, A_Mf2_p2, A_Mf2_p3, A_Mf2_temp, A_Mf2_final;
-
-    A_Mf2_p1 = A_Mf2.block(0, 0, numRows, pinnedVerticies(0));
-    A_Mf2_p2 = A_Mf2.block(0, pinnedVerticies(0) + 1, numRows, pinnedVerticies(1) - pinnedVerticies(0) - 1);
-    A_Mf2_p3 = A_Mf2.block(0, pinnedVerticies(1) + 1, numRows, numCols - pinnedVerticies(1));
-
-    A_Mf2_temp.resize(A_Mf2_p1.rows(), A_Mf2_p1.cols() + A_Mf2_p2.cols());
-    A_Mf2_temp.middleCols(0, A_Mf2_p1.cols()) = A_Mf2_p1;
-    A_Mf2_temp.middleCols(A_Mf2_p1.cols(), A_Mf2_p2.cols()) = A_Mf2_p2;
-
-    // std::cout << "Dimensions temp: " << A_Mf2_temp.rows() << " x " << A_Mf2_temp.cols() << "\n";
-
-    A_Mf2_final.resize(A_Mf2_temp.rows(), A_Mf2_temp.cols() + A_Mf2_p3.cols());
-    A_Mf2_final.middleCols(0, A_Mf2_temp.cols()) = A_Mf2_temp;
-    A_Mf2_final.middleCols(A_Mf2_temp.cols(), A_Mf2_p3.cols()) = A_Mf2_p3;
-
-    // std::cout << "Dimensions A_Mf2_final: " << A_Mf2_final.rows() << " x " << A_Mf2_final.cols() << "\n";
-
-    /*
-    from zero to column of first pinned,*/
-    // look at uv coord buisness
+    colToRemove = pinnedVerticies(1) - 1; // as weve resized, to remove what was the 6, now 5
+    numRows = A_Mf1.rows();
+    numCols = A_Mf1.cols() - 1;
+    if (colToRemove < numCols)
+    {
+        A_Mf1.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf1.block(0, colToRemove + 1, numRows, numCols - colToRemove);
+        A_Mf2.block(0, colToRemove, numRows, numCols - colToRemove) = A_Mf2.block(0, colToRemove + 1, numRows, numCols - colToRemove);
+    }
+    A_Mf1.conservativeResize(numRows, numCols);
+    A_Mf2.conservativeResize(numRows, numCols);
 
     // std::cout << "\n\nRemoved some stuff...A_Mf1:\n\n";
     // std::cout << A_Mf1 << "\n\n"
@@ -341,8 +289,8 @@ int main()
     // std::cout << A_Mf2 << "\n\n"
     //           << std::endl;
 
-    // std::cout << "Dimensions A_Mf1_final: " << A_Mf1_final.rows() << " x " << A_Mf1_final.cols() << "\n";
-    // std::cout << "Dimensions A_Mf2_final: " << A_Mf2_final.rows() << " x " << A_Mf2_final.cols() << "\n";
+    std::cout << "Dimensions A_Mf1: " << A_Mf1.rows() << " x " << A_Mf1.cols() << "\n";
+    std::cout << "Dimensions A_Mf2: " << A_Mf2.rows() << " x " << A_Mf2.cols() << "\n";
     // Form A, consists of 4 block matricies
     /*
     Mf1 -Mf2
@@ -350,46 +298,21 @@ int main()
     */
     std::cout << "listofFaces size: " << listOfFaces.size() << "   listofpoint size: " << listOfPoints.size() << "\n";
 
-    Eigen::SparseMatrix<double> A_top(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    Eigen::SparseMatrix<double> A_bottom(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    // Eigen::SparseMatrix<double> A(listOfFaces.size(), 4 * (listOfPoints.size() - 2)); /// wrong, if concatting verticallly
+    Eigen::MatrixXd A_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    Eigen::MatrixXd A_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    // A is 2(numFaces) x 2(numPoints-numPinnedpoints) matrix
 
-    // for sparse matricies we can't just concat like before
+    A_top << A_Mf1, -A_Mf2;
+    A_bottom << A_Mf2, A_Mf1;
 
-    // A_top << A_Mf1, -A_Mf2;  //final
-    A_top.resize(A_Mf1_final.rows(), A_Mf1_final.cols() + A_Mf2_final.cols());
-    A_top.middleCols(0, A_Mf1_final.cols()) = A_Mf1_final;
-    A_top.middleCols(A_Mf1_final.cols(), A_Mf2_final.cols()) = -A_Mf2_final;
-
-    // A_bottom << A_Mf2, A_Mf1;
-    A_bottom.resize(A_Mf2_final.rows(), A_Mf2_final.cols() + A_Mf1_final.cols());
-    A_bottom.middleCols(0, A_Mf2_final.cols()) = A_Mf2_final;
-    A_bottom.middleCols(A_Mf2_final.cols(), A_Mf1_final.cols()) = A_Mf1_final;
-
-    // A << A_top, A_bottom;   //vertical concat
-
-    // ########################this joining code is for vertically!!
-    A.reserve(A_top.nonZeros() + A_bottom.nonZeros());
-    for (Eigen::Index c = 0; c < A_top.cols(); ++c)
-    {
-        A.startVec(c); // Important: Must be called once for each column before inserting!
-        for (Eigen::SparseMatrix<double>::InnerIterator it_A_top(A_top, c); it_A_top; ++it_A_top)
-            A.insertBack(it_A_top.row(), c) = it_A_top.value();
-        for (Eigen::SparseMatrix<double>::InnerIterator it_A_bottom(A_bottom, c); it_A_bottom; ++it_A_bottom)
-            A.insertBack(it_A_bottom.row() + A_top.rows(), c) = (it_A_bottom.value());
-    }
-    A.finalize();
+    A << A_top, A_bottom;
 
     std::cout << "#############  Final things   #########\n\n";
-    std::cout << "Dimensions A: " << A.rows() << " x " << A.cols() << "\n";
+
     // std::cout << "A\n\n"
     //           << A << "\n\n"
     //           << std::endl;
-
-    // Eigen::SparseMatrix<double> Bmat_top(listOfFaces.size(), 4);
-    // Eigen::SparseMatrix<double> Bmat_bottom(listOfFaces.size(), 4);
-    // Eigen::SparseMatrix<double> Bmat(2 * listOfFaces.size(), 4);
 
     Eigen::MatrixXd Bmat_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 4); // 4 as two pinned verticeis
     Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 4);
@@ -414,7 +337,7 @@ int main()
               << std::endl;
 
     Eigen::MatrixXd RHS = -Bmat * pinnedUV; // should rhs be neg? Ax=b
-    std::cout << "Dimensions RHS: " << RHS.rows() << " x " << RHS.cols() << "\n";
+
     // std::cout << "RHS\n"
     //           << RHS << "\n\n"
     //           << std::endl;
@@ -427,40 +350,30 @@ int main()
 
     std::cout << "Calculating...\n";
 
-    // solution = A.colPivHouseholderQr().solve(RHS);
+    std::cout << "Dimensions A: " << A.rows() << " x " << A.cols() << "\n";
 
-    // SOlver
-    // Matrix needs to be compressed before it can be used with solver
-    A.makeCompressed();
-    std::cout << "Dimensions (post compression) A: " << A.rows() << " x " << A.cols() << "\n";
-    // std::ofstream A_sparseMatrixfile;
-    // A_sparseMatrixfile.open("A_sparse.txt");
-    // A_sparseMatrixfile << Eigen::MatrixXd(A);
+    // std::ofstream A_denseMatrixfile;
+    // A_denseMatrixfile.open("A_dense.txt");
+    // A_denseMatrixfile << A;
 
-    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    
+
+
     std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
-    solver.compute(A);
+    auto solver = A.colPivHouseholderQr();
     std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
 
     std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
-    if (solver.info() != Eigen::Success)
-    {
-        // decomposition failed
-        return -1;
-    }
+
     std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
+    //solution = A.colPivHouseholderQr().solve(RHS);
     solution = solver.solve(RHS);
     std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
-    if (solver.info() != Eigen::Success)
-    {
-        // solving failed
-        return -1;
-    }
-
     // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
     //           << solution << std::endl;
 
-    std::cout << "Time for solver (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_solve - begin_solve).count() / 1000000.0 << std::endl;
+
+    std::cout << "Time for calc (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_solve - begin_solve).count() / 1000000.0 << std::endl;
     //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
     //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
 
@@ -470,18 +383,24 @@ int main()
     First create a new list and insert the pinned coordiantes in the right place
     The results can then be written to a tri file*/
 
+    // for dome example we have u coords u0-3, u5-7, v0-3, v5-7
+    //  pinned coord vector has, u4,u6, v4, v6
+
+    // pinnedVerticies(0) and 1 - in this case 4 and 6
+
+    Eigen::VectorXd u_coords(listOfPoints.size(), 1);
+    Eigen::VectorXd v_coords(listOfPoints.size(), 1);
     // // efficency concerns of adding in the middle of a vector
-    //
+    // /*
     // pre first pinned    //from zero to one before pinned
     // first pinned        //firt pinned
     // post first pinned   //from first pinned to one before second pinned
     // second  pinned      //second pinned
     // post second pinned  //from second pinned till the end
 
-    // //but pinned may be first or last?? worry about this if it happens?*/
+    // this is all for u
 
-    Eigen::VectorXd u_coords(listOfPoints.size(), 1);
-    Eigen::VectorXd v_coords(listOfPoints.size(), 1);
+    // //but pinned may be first or last?? worry about this if it happens?*/
 
     for (int i = 0; i < pinnedVerticies(0); i++)
     {
@@ -507,9 +426,10 @@ int main()
     //           << std::endl;
 
     //--------------v
+    // soltuion.rows() is 12, therefore over 2 is 6 - the first of v coords
 
     int j = 0;
-    for (int i = solution.rows() / 2; i < pinnedVerticies(0) + solution.rows() / 2; i++)
+    for (int i = solution.rows() / 2; i < pinnedVerticies(0) + solution.rows() / 2; i++) // 6;10
     {
         v_coords(j) = solution(i);
         j++;
@@ -722,10 +642,3 @@ bool calcTriangleAreas(std::vector<Point> &listOfPoints, // make const - need to
     }
     return true;
 }
-
-/*
-    //Code for writing matrix to file, to then be able to compare it to sparse version
-    std::ofstream denseMatrixfile;
-    denseMatrixfile.open("dense_A_Mf1.txt");
-    denseMatrixfile << A_Mf1;
-*/
