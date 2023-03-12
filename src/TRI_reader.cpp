@@ -1,5 +1,3 @@
-//########################################FINDME#############################
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -7,29 +5,14 @@
 #include <string>
 #include <vector>
 
-// include eigen dense
-// later eigen sparse
-
-// eigen is header only - link in cmake
-// #include "Eigen"
-// #include <Eigen/Core>
-//
-
 #include <chrono> //for timing execution
 
-#include <Eigen/Dense>
-
+#include <Eigen/Dense>  // eigen is header only - link in cmake
 #include <Eigen/Sparse>
-
-// #include <Eigen/OrderingMethods>    //for part of sparseqrsolver?
 
 #include <igl/boundary_loop.h>
 
-/*Notes
-Double vs float – template so user can choose speed vs accuracy?
 
-//tri format, consider indexing, 0 or 1, general formatting
-*/
 #include "Point.hpp"
 #include "Face.hpp"
 
@@ -53,7 +36,6 @@ bool outputTRIfile(std::vector<Point> &listOfPoints,
 
 // briefly have a global varible for eigen matrix of faces
 // igl boundary loop test
-
 std::vector<std::vector<int>> faces;
 
 int main()
@@ -70,13 +52,7 @@ int main()
         return (-1);
     }
 
-    // Done lower down afer removing some triangles
-    //  Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
-    //  for (int i = 0; i < listOfFaces.size(); i++)
-    //  {
-    //      faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
-    //  }
-
+   
     // we now need to preprocess before we can perform mapping
     // currently not topologically a disk
 
@@ -167,19 +143,15 @@ int main()
     std::cout << "\n\nPinned Verticies\n"
               << pinnedVerticies << std::endl;
 
-    // assign to sparse matrix
-    //  if vertex j belongs to triangle i, do some calc and place number, otherwise zero.
-    // look at index numbers of triangle, and compare these to j, if theres a match, vertex j is part of triangle i
+
 
     std::cout << "\n\n\n\n";
     Eigen::SparseMatrix<double> M(listOfFaces.size(), listOfPoints.size());
-    // Eigen::MatrixXd M = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
-    // would be sparse in reality, dense for now
-
     Eigen::SparseMatrix<double> A_Mf1(listOfFaces.size(), listOfPoints.size());
     Eigen::SparseMatrix<double> A_Mf2(listOfFaces.size(), listOfPoints.size());
-    // Eigen::MatrixXd A_Mf1 = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
-    // Eigen::MatrixXd A_Mf2 = Eigen::MatrixXd::Zero(listOfFaces.size(), listOfPoints.size());
+    // assign to sparse matrix
+    // if vertex j belongs to triangle i, do some calc and place number, otherwise zero.
+    //look at index numbers of triangle, and compare these to j, if theres a match, vertex j is part of triangle i
 
     for (int i = 0; i < listOfFaces.size(); i++)
     { // loop through the triangles
@@ -250,7 +222,6 @@ int main()
     // and resize the matrix
 
     // pinning verticies
-
     Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2); // dont think need these to be zero initalised, remove later, just working on something else rn
     Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
     int testing = listOfFaces.size();
@@ -258,7 +229,6 @@ int main()
     // b_Mp1 << A_Mf1.block<testing, 1>(0, pinnedVerticies(0)), A_Mf1.block<testing, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
 
     // You can't just concatenate sparse matricies
-
     // b_Mp1 << A_Mf1.col(pinnedVerticies(0)), A_Mf1.col(pinnedVerticies(1));
 
     // when extracting from sparse and copying to eigen need to first construct vector
@@ -369,7 +339,7 @@ int main()
 
     // A << A_top, A_bottom;   //vertical concat
 
-    // ########################this joining code is for vertically!!
+    //joining code is for vertically!!
     A.reserve(A_top.nonZeros() + A_bottom.nonZeros());
     for (Eigen::Index c = 0; c < A_top.cols(); ++c)
     {
@@ -387,9 +357,6 @@ int main()
     //           << A << "\n\n"
     //           << std::endl;
 
-    // Eigen::SparseMatrix<double> Bmat_top(listOfFaces.size(), 4);
-    // Eigen::SparseMatrix<double> Bmat_bottom(listOfFaces.size(), 4);
-    // Eigen::SparseMatrix<double> Bmat(2 * listOfFaces.size(), 4);
 
     Eigen::MatrixXd Bmat_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 4); // 4 as two pinned verticeis
     Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 4);
@@ -707,11 +674,9 @@ bool calcTriangleAreas(std::vector<Point> &listOfPoints, // make const - need to
                        std::vector<double> &listOfAreas)
 
 {
-
     // loop through the list of faces, for each face get the points, then use these in calc
     for (int i = 0; i < listOfFaces.size(); i++)
     {
-
         // listOfAreas.at(i) = (x1 * y2 - y1 * x2) + (x2 * y3 - y2 * x3) + (x3 * y1 - y3 * x1);
         listOfAreas.at(i) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
                              listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) +
@@ -723,9 +688,3 @@ bool calcTriangleAreas(std::vector<Point> &listOfPoints, // make const - need to
     return true;
 }
 
-/*
-    //Code for writing matrix to file, to then be able to compare it to sparse version
-    std::ofstream denseMatrixfile;
-    denseMatrixfile.open("dense_A_Mf1.txt");
-    denseMatrixfile << A_Mf1;
-*/
