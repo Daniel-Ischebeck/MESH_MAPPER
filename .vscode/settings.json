@@ -90,7 +90,20 @@
         "fft": "cpp",
         "cfenv": "cpp",
         "cstdarg": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "iterativelinearsolvers": "cpp",
+        "core": "cpp",
+        "superlusupport": "cpp",
+        "adolcforward": "cpp",
+        "autodiff": "cpp",
+        "bvh": "cpp",
+        "eulerangles": "cpp",
+        "kroneckerproduct": "cpp",
+        "mprealsupport": "cpp",
+        "numericaldiff": "cpp",
+        "openglsupport": "cpp",
+        "specialfunctions": "cpp",
+        "splines": "cpp"
     },
     "cmake.configureOnOpen": true
 }

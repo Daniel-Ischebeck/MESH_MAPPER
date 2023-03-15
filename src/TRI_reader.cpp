@@ -1,59 +1,22 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
+#include "TRI_reader.hpp"
+#include "FileIO.hpp"
 
-#include <string>
-#include <vector>
 
-#include <chrono> //for timing execution
 
-#include <Eigen/Dense> // eigen is header only - link in cmake
-#include <Eigen/Sparse>
-
-#include <Eigen/IterativeLinearSolvers>
-#include <Eigen/Geometry> //for rotation
-
-#include <igl/boundary_loop.h>
-
-#include "Point.hpp"
-#include "Face.hpp"
-
-bool readFile(std::vector<Point> &listOfPoints,
-              std::vector<Face> &listOfFaces,
-              std::string filePath);
-
-bool calcTriangleAreas(std::vector<Point> &listOfPoints,
-                       std::vector<Face> &listOfFaces,
-                       std::vector<double> &listOfAreas);
-
-bool outputUVfile(std::vector<Face> &listOfFaces,
-                  Eigen::MatrixXi &faceMatrix,
-                  Eigen::VectorXd &u_coords,
-                  Eigen::VectorXd &v_coords,
-                  std::string filePath); // testing face matrix and witing it to file
-
-bool outputTRIfile(std::vector<Point> &listOfPoints,
-                   std::vector<Face> &listOfFaces,
-                   std::string filePath);
-
-bool compare_double(double first, double second, double epsilon);
-
-double epsilon = 0.0001f;
-// briefly have a global varible for eigen matrix of faces
-// igl boundary loop test
-std::vector<std::vector<int>> faces;
-std::vector<std::vector<double>> points;
-
-Eigen::MatrixXd pointMatrix(1961, 3);
 int main()
 {
     std::chrono::steady_clock::time_point overallBegin = std::chrono::steady_clock::now();
+
+    std::vector<std::vector<int>> faces;
+    std::vector<std::vector<double>> points;
+    double epsilon = 0.0001f;
+
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
     std::string filePath = "../files/radome.tri"; // part_sphere_high
 
-    if (!readFile(listOfPoints, listOfFaces, filePath))
+    if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
         std::cout << "Exiting\n";
         return (-1);
@@ -65,8 +28,8 @@ int main()
     // ########################
     // Rotate the radome
     // first need to have a point matrix, and then rotate this
-
-    // Eigen::MatrixXd pointMatrix(listOfPoints.size(), 3);
+    std::cout << "Listofpoints.size " << listOfPoints.size() << "\n";
+    Eigen::MatrixXd pointMatrix(listOfPoints.size(), 3);
 
     // points.resize(1961, std::vector<double>(3));
 
@@ -98,7 +61,7 @@ int main()
     }
 
     // very bad global point matrix - fix this
-    //outputTRIfile(listOfPoints, listOfFaces, "preRemoval_modifiedTRI.tri");
+    // outputTRIfile(listOfPoints, listOfFaces, "preRemoval_modifiedTRI.tri");
 
     /*
     we want to remove flat bottom of dome
@@ -124,18 +87,10 @@ int main()
         //  a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
         //  b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
         //  c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
-        if (a < -2.14)
-        {
-            std::cout << "Test: " << i << "\ta: " << a << "\tb: " << b << "\tc: " << c << "\n";
-        }
 
-        if ((a == b) && (b == c))
-        {
-            std::cout << "Tri: " << i << " is bad\n\n";
-        }
         // copy elements that are NOT part of the base into a new list which will now use
-        //if (!((a == b) && (b == c)))    //comparing doubles can be problematic, use function
-        if(!(compare_double(a,b,epsilon) && compare_double(b,c,epsilon)))
+        // if (!((a == b) && (b == c)))    //comparing doubles can be problematic, use function
+        if (!(compare_double(a, b, epsilon) && compare_double(b, c, epsilon) && a < -2.14 && b < -2.14 && c < -2.14))
         {
             // std::cout << "Triangle: " << i << " is not on x-y plane\n";
             //   listOfFaces.erase(listOfFaces.begin() + i);
@@ -201,9 +156,229 @@ int main()
               << pinnedVerticies << std::endl;
 
     std::cout << "\n\n\n\n";
+    
+    // #######################ALL matrix declarations
+    //  Eigen::SparseMatrix<double> M(listOfFaces.size(), listOfPoints.size());
+    //  Eigen::SparseMatrix<double> A_Mf1(listOfFaces.size(), listOfPoints.size());
+    //  Eigen::SparseMatrix<double> A_Mf2(listOfFaces.size(), listOfPoints.size());
+
+    // Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd(listOfFaces.size(), 2);
+    // Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd(listOfFaces.size(), 2);
+
+    // Eigen::SparseMatrix<double> A_Mf1_p1, A_Mf1_p2, A_Mf1_p3, A_Mf1_temp, A_Mf1_final;
+    // Eigen::SparseMatrix<double> A_Mf2_p1, A_Mf2_p2, A_Mf2_p3, A_Mf2_temp, A_Mf2_final;
+
+    // Eigen::SparseMatrix<double> A_top(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    // Eigen::SparseMatrix<double> A_bottom(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    // Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+
+    // Eigen::MatrixXd Bmat_top = Eigen::MatrixXd(listOfFaces.size(), 4); // 4 as two pinned verticeis
+    // Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd(listOfFaces.size(), 4);
+    // Eigen::MatrixXd Bmat = Eigen::MatrixXd(2 * listOfFaces.size(), 4);
+
+    Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    Eigen::MatrixXd RHS(2*(listOfFaces.size()), 1); 
+    Eigen::VectorXd pinnedUV(4, 1);
+
+    prepMatricies(listOfPoints, listOfFaces, listOfAreas, pinnedVerticies, pinnedUV, A, RHS);
+
+
+
+    // std::cout << "The least-squares solution is:\n"
+    //     //<< A.template bdcSvd<Eigen::ComputeThinU | Eigen::ComputeThinV>().solve(Bmat) << std::endl;
+    //      << A.colPivHouseholderQr().solve(RHS);
+
+    Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
+
+    std::cout << "Calculating...\n";
+
+    // solution = A.colPivHouseholderQr().solve(RHS);
+
+    // SOlver
+    // Matrix needs to be compressed before it can be used with solver
+    A.makeCompressed();
+    std::cout << "Dimensions (post compression) A: " << A.rows() << " x " << A.cols() << "\n";
+    // std::ofstream A_sparseMatrixfile;
+    // A_sparseMatrixfile.open("A_sparse.txt");
+    // A_sparseMatrixfile << Eigen::MatrixXd(A);
+
+    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
+
+    std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
+    // solver.compute(A);
+    lscg.compute(A);
+    std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
+    std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
+
+    // if (solver.info() != Eigen::Success)
+    // {
+    //     // decomposition failed
+    //     return -1;
+    // }
+
+    std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
+    // solution = solver.solve(RHS);
+    solution = lscg.solve(RHS);
+    std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
+    // if (solver.info() != Eigen::Success) //should this be solution###########################
+    // {
+    //     // solving failed
+    //     return -1;
+    // }
+
+    std::cout << "#iterations:     " << lscg.iterations() << std::endl;
+    std::cout << "estimated error: " << lscg.error() << std::endl;
+
+    // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
+    //           << solution << std::endl;
+
+    std::cout << "Time for solver (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_solve - begin_solve).count() / 1000000.0 << std::endl;
+    //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
+    //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
+
+    // Now we have a list of u coordinates, followed by v coordinates
+    /*We want to plot these on the UV plane
+    However this list does not contain the pinned coordiantes
+    First create a new list and insert the pinned coordiantes in the right place
+    The results can then be written to a tri file*/
+
+    // // efficency concerns of adding in the middle of a vector
+    //
+    // pre first pinned    //from zero to one before pinned
+    // first pinned        //firt pinned
+    // post first pinned   //from first pinned to one before second pinned
+    // second  pinned      //second pinned
+    // post second pinned  //from second pinned till the end
+
+    // //but pinned may be first or last?? worry about this if it happens?*/
+
+    Eigen::VectorXd u_coords(listOfPoints.size(), 1);
+    Eigen::VectorXd v_coords(listOfPoints.size(), 1);
+
+    // prepSolutionforOutput(u_coords, v_coords, pinnedVerticies, solution, listOfPoints.size())
+
+    for (int i = 0; i < pinnedVerticies(0); i++)
+    {
+        u_coords(i) = solution(i);
+    }
+
+    u_coords(pinnedVerticies(0)) = pinnedUV(0); // first pinned coord, u
+
+    for (int i = pinnedVerticies(0) + 1; i < pinnedVerticies(1); i++)
+    {
+        u_coords(i) = solution(i - 1); // i-1 as solution index as at this point weve passed one pinned point
+    }
+
+    u_coords(pinnedVerticies(1)) = pinnedUV(1); // second pinned coord, u
+
+    for (int i = pinnedVerticies(1) + 1; i < listOfPoints.size(); i++)
+    {
+        u_coords(i) = solution(i - 2); // now weve passed two pinned points
+    }
+
+    // std::cout << "\nU coords:\n"
+    //           << u_coords << "\n"
+    //           << std::endl;
+
+    //--------------v
+
+    int j = 0;
+    for (int i = solution.rows() / 2; i < pinnedVerticies(0) + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i);
+        j++;
+    }
+
+    v_coords(pinnedVerticies(0)) = pinnedUV(2);
+    j++;
+
+    for (int i = pinnedVerticies(0) + 1 + solution.rows() / 2; i < pinnedVerticies(1) + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i - 1);
+        j++;
+    }
+
+    v_coords(pinnedVerticies(1)) = pinnedUV(3);
+    j++;
+
+    for (int i = pinnedVerticies(1) + 1 + solution.rows() / 2; i < listOfPoints.size() + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i - 2);
+        j++;
+    }
+
+    // std::cout << "\nV coords:\n"
+    //           << v_coords << "\n\n"
+    //           << std::endl;
+
+    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
+
+    std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
+    std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
+
+    return 0;
+}
+
+bool calcTriangleAreas(std::vector<Point> &listOfPoints, // make const - need to alter classes of Point and face
+                       std::vector<Face> &listOfFaces,
+                       std::vector<double> &listOfAreas)
+
+{
+    // loop through the list of faces, for each face get the points, then use these in calc
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        // listOfAreas.at(i) = (x1 * y2 - y1 * x2) + (x2 * y3 - y2 * x3) + (x3 * y1 - y3 * x1);
+        listOfAreas.at(i) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
+                             listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) +
+                            (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() -
+                             listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) +
+                            (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
+                             listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x());
+    }
+    return true;
+}
+
+bool compare_double(double first, double second, double epsilon)
+
+{
+    if (fabs(first - second) < epsilon)
+        return true; // they are same
+    return false;    // they are not same
+}
+
+void prepMatricies(std::vector<Point> &listOfPoints,
+                   std::vector<Face> &listOfFaces,
+                   std::vector<double> &listOfAreas,
+                   Eigen::VectorXi &pinnedVerticies,
+                   Eigen::VectorXd &pinnedUV,
+                   Eigen::SparseMatrix<double> &A,
+                   Eigen::MatrixXd &RHS)
+{
+
     Eigen::SparseMatrix<double> M(listOfFaces.size(), listOfPoints.size());
     Eigen::SparseMatrix<double> A_Mf1(listOfFaces.size(), listOfPoints.size());
     Eigen::SparseMatrix<double> A_Mf2(listOfFaces.size(), listOfPoints.size());
+
+    Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd(listOfFaces.size(), 2);
+    Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd(listOfFaces.size(), 2);
+
+    Eigen::SparseMatrix<double> A_Mf1_p1, A_Mf1_p2, A_Mf1_p3, A_Mf1_temp, A_Mf1_final;
+    Eigen::SparseMatrix<double> A_Mf2_p1, A_Mf2_p2, A_Mf2_p3, A_Mf2_temp, A_Mf2_final;
+
+    Eigen::SparseMatrix<double> A_top(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    Eigen::SparseMatrix<double> A_bottom(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    //Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+
+    Eigen::MatrixXd Bmat_top = Eigen::MatrixXd(listOfFaces.size(), 4); // 4 as two pinned verticeis
+    Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd(listOfFaces.size(), 4);
+    Eigen::MatrixXd Bmat = Eigen::MatrixXd(2 * listOfFaces.size(), 4);
+
+   // Eigen::MatrixXd RHS(2 * (listOfFaces.size()), 1); // this is the only matrix we will use later
+
+    // prepMatricies(Eigen::MatrixXd RHS)
+    //
+
     // assign to sparse matrix
     // if vertex j belongs to triangle i, do some calc and place number, otherwise zero.
     // look at index numbers of triangle, and compare these to j, if theres a match, vertex j is part of triangle i
@@ -277,8 +452,8 @@ int main()
     // and resize the matrix
 
     // pinning verticies
-    Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2); // dont think need these to be zero initalised, remove later, just working on something else rn
-    Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
+    // Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2); // dont think need these to be zero initalised, remove later, just working on something else rn
+    // Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd::Zero(listOfFaces.size(), 2);
     int testing = listOfFaces.size();
     // template paramters need to be known at compile time
     // b_Mp1 << A_Mf1.block<testing, 1>(0, pinnedVerticies(0)), A_Mf1.block<testing, 1>(0, pinnedVerticies(1)); // concatting the two columns for pinned matrix
@@ -311,7 +486,7 @@ int main()
     //           << anotherMatrix << "\n\n"
     //           << std::endl;
 
-    Eigen::SparseMatrix<double> A_Mf1_p1, A_Mf1_p2, A_Mf1_p3, A_Mf1_temp, A_Mf1_final;
+    // Eigen::SparseMatrix<double> A_Mf1_p1, A_Mf1_p2, A_Mf1_p3, A_Mf1_temp, A_Mf1_final;
 
     A_Mf1_p1 = A_Mf1.block(0, 0, numRows, pinnedVerticies(0));
     A_Mf1_p2 = A_Mf1.block(0, pinnedVerticies(0) + 1, numRows, pinnedVerticies(1) - pinnedVerticies(0) - 1);
@@ -336,7 +511,7 @@ int main()
     // sparseMatrixfile << Eigen::MatrixXd(A_Mf1_final); // Need to convert to dense for representation
 
     // A_Mf2################################
-    Eigen::SparseMatrix<double> A_Mf2_p1, A_Mf2_p2, A_Mf2_p3, A_Mf2_temp, A_Mf2_final;
+    // Eigen::SparseMatrix<double> A_Mf2_p1, A_Mf2_p2, A_Mf2_p3, A_Mf2_temp, A_Mf2_final;
 
     A_Mf2_p1 = A_Mf2.block(0, 0, numRows, pinnedVerticies(0));
     A_Mf2_p2 = A_Mf2.block(0, pinnedVerticies(0) + 1, numRows, pinnedVerticies(1) - pinnedVerticies(0) - 1);
@@ -375,9 +550,9 @@ int main()
     */
     std::cout << "listofFaces size: " << listOfFaces.size() << "   listofpoint size: " << listOfPoints.size() << "\n";
 
-    Eigen::SparseMatrix<double> A_top(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    Eigen::SparseMatrix<double> A_bottom(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    // Eigen::SparseMatrix<double> A_top(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    // Eigen::SparseMatrix<double> A_bottom(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    // Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
     // Eigen::SparseMatrix<double> A(listOfFaces.size(), 4 * (listOfPoints.size() - 2)); /// wrong, if concatting verticallly
 
     // for sparse matricies we can't just concat like before
@@ -412,9 +587,9 @@ int main()
     //           << A << "\n\n"
     //           << std::endl;
 
-    Eigen::MatrixXd Bmat_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 4); // 4 as two pinned verticeis
-    Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 4);
-    Eigen::MatrixXd Bmat = Eigen::MatrixXd::Zero(2 * listOfFaces.size(), 4);
+    // Eigen::MatrixXd Bmat_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 4); // 4 as two pinned verticeis
+    // Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 4);
+    // Eigen::MatrixXd Bmat = Eigen::MatrixXd::Zero(2 * listOfFaces.size(), 4);
 
     Bmat_top << b_Mp1, -b_Mp2;
     Bmat_bottom << b_Mp2, b_Mp1;
@@ -428,342 +603,12 @@ int main()
     //           << Bmat << "\n\n"
     //           << std::endl;
 
-    Eigen::VectorXd pinnedUV(4, 1); // will always pin two coords, therefore 4 points
+    // Eigen::VectorXd pinnedUV(4, 1); // will always pin two coords, therefore 4 points
     pinnedUV << 0, 1, 0, 0;         // choosing to pin in UV space, one coord at (0,0), (1,0)   //is this sensible for all shapes?
     std::cout << "Pinned UV:\n\n"
               << pinnedUV << "\n\n"
               << std::endl;
 
-    Eigen::MatrixXd RHS = -Bmat * pinnedUV; // should rhs be neg? Ax=b
+    RHS = -Bmat * pinnedUV; // should rhs be neg? Ax=b
     std::cout << "Dimensions RHS: " << RHS.rows() << " x " << RHS.cols() << "\n";
-    // std::cout << "RHS\n"
-    //           << RHS << "\n\n"
-    //           << std::endl;
-
-    // std::cout << "The least-squares solution is:\n"
-    //     //<< A.template bdcSvd<Eigen::ComputeThinU | Eigen::ComputeThinV>().solve(Bmat) << std::endl;
-    //      << A.colPivHouseholderQr().solve(RHS);
-
-    Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
-
-    std::cout << "Calculating...\n";
-
-    // solution = A.colPivHouseholderQr().solve(RHS);
-
-    // SOlver
-    // Matrix needs to be compressed before it can be used with solver
-    A.makeCompressed();
-    std::cout << "Dimensions (post compression) A: " << A.rows() << " x " << A.cols() << "\n";
-    // std::ofstream A_sparseMatrixfile;
-    // A_sparseMatrixfile.open("A_sparse.txt");
-    // A_sparseMatrixfile << Eigen::MatrixXd(A);
-
-    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
-
-    std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
-    //solver.compute(A);
-    lscg.compute(A);
-    std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
-    std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
-
-    // if (solver.info() != Eigen::Success)
-    // {
-    //     // decomposition failed
-    //     return -1;
-    // }
-
-    std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
-    //solution = solver.solve(RHS);
-    solution = lscg.solve(RHS);
-    std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
-    // if (solver.info() != Eigen::Success) //should this be solution###########################
-    // {
-    //     // solving failed
-    //     return -1;
-    // }
-    
-    std::cout << "#iterations:     " << lscg.iterations() << std::endl;
-    std::cout << "estimated error: " << lscg.error() << std::endl;
-   
-    // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
-    //           << solution << std::endl;
-
-    std::cout << "Time for solver (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_solve - begin_solve).count() / 1000000.0 << std::endl;
-    //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
-    //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
-
-    // Now we have a list of u coordinates, followed by v coordinates
-    /*We want to plot these on the UV plane
-    However this list does not contain the pinned coordiantes
-    First create a new list and insert the pinned coordiantes in the right place
-    The results can then be written to a tri file*/
-
-    // // efficency concerns of adding in the middle of a vector
-    //
-    // pre first pinned    //from zero to one before pinned
-    // first pinned        //firt pinned
-    // post first pinned   //from first pinned to one before second pinned
-    // second  pinned      //second pinned
-    // post second pinned  //from second pinned till the end
-
-    // //but pinned may be first or last?? worry about this if it happens?*/
-
-    Eigen::VectorXd u_coords(listOfPoints.size(), 1);
-    Eigen::VectorXd v_coords(listOfPoints.size(), 1);
-
-    for (int i = 0; i < pinnedVerticies(0); i++)
-    {
-        u_coords(i) = solution(i);
-    }
-
-    u_coords(pinnedVerticies(0)) = pinnedUV(0); // first pinned coord, u
-
-    for (int i = pinnedVerticies(0) + 1; i < pinnedVerticies(1); i++)
-    {
-        u_coords(i) = solution(i - 1); // i-1 as solution index as at this point weve passed one pinned point
-    }
-
-    u_coords(pinnedVerticies(1)) = pinnedUV(1); // second pinned coord, u
-
-    for (int i = pinnedVerticies(1) + 1; i < listOfPoints.size(); i++)
-    {
-        u_coords(i) = solution(i - 2); // now weve passed two pinned points
-    }
-
-    // std::cout << "\nU coords:\n"
-    //           << u_coords << "\n"
-    //           << std::endl;
-
-    //--------------v
-
-    int j = 0;
-    for (int i = solution.rows() / 2; i < pinnedVerticies(0) + solution.rows() / 2; i++)
-    {
-        v_coords(j) = solution(i);
-        j++;
-    }
-
-    v_coords(pinnedVerticies(0)) = pinnedUV(2);
-    j++;
-
-    for (int i = pinnedVerticies(0) + 1 + solution.rows() / 2; i < pinnedVerticies(1) + solution.rows() / 2; i++)
-    {
-        v_coords(j) = solution(i - 1);
-        j++;
-    }
-
-    v_coords(pinnedVerticies(1)) = pinnedUV(3);
-    j++;
-
-    for (int i = pinnedVerticies(1) + 1 + solution.rows() / 2; i < listOfPoints.size() + solution.rows() / 2; i++)
-    {
-        v_coords(j) = solution(i - 2);
-        j++;
-    }
-
-    // std::cout << "\nV coords:\n"
-    //           << v_coords << "\n\n"
-    //           << std::endl;
-
-    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
-
-    std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
-    std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
-
-    return 0;
-}
-
-bool outputUVfile(std::vector<Face> &listOfFaces,
-                  Eigen::MatrixXi &faceMatrix,
-                  Eigen::VectorXd &u_coords,
-                  Eigen::VectorXd &v_coords,
-                  std::string filePath) // testing face matrix
-{
-
-    std::ofstream outputUVfile;
-    outputUVfile.open(filePath); // file name or file path
-
-    outputUVfile << u_coords.rows() << " 2 0\n"; // uv output points will always have 2 dimensions and 0 attributes
-    for (int i = 0; i < u_coords.rows(); i++)
-    {
-        outputUVfile << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
-    }
-
-    outputUVfile << listOfFaces.size() << " 3 0\n"; // these attribute values may change later
-    // outputUVfile << faceMatrix << "\n";
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        outputUVfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << "\n";
-    }
-
-    outputUVfile << "Random\n";
-
-    return true;
-}
-
-bool outputTRIfile(std::vector<Point> &listOfPoints,
-                   std::vector<Face> &listOfFaces,
-                   std::string filePath) // testing face matrix
-{
-
-    std::ofstream outputTRIfile;
-    outputTRIfile.open(filePath); // file name or file path
-
-    outputTRIfile << listOfPoints.size() << " 3 0\n"; // uv output points will always have 2 dimensions and 0 attributes
-    for (int i = 0; i < listOfPoints.size(); i++)
-    {
-        outputTRIfile << i << " " << listOfPoints.at(i).get_x() << " "
-                      << listOfPoints.at(i).get_y() << " "
-                      << listOfPoints.at(i).get_z() << "\n";
-        // outputTRIfile << i << " " << pointMatrix(i, 0) << " "
-        //               << pointMatrix(i, 1) << " "
-        //               << pointMatrix(i, 2) << "\n";
-    }
-
-    outputTRIfile << listOfFaces.size() << " 3 0\n"; // these attribute values may change later
-    // outputUVfile << faceMatrix << "\n";
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        outputTRIfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << "\n";
-    }
-
-    outputTRIfile << "Random\n";
-
-    return true;
-}
-
-bool readFile(std::vector<Point> &listOfPoints,
-              std::vector<Face> &listOfFaces,
-              std::string filePath)
-{
-    std::ifstream inputTRIFile(filePath); // straight_dome.tri
-    std::string line;
-
-    if (!inputTRIFile.is_open())
-    {
-        std::cout << "Failed to open file";
-        return false;
-    }
-
-    int currentLine = 1;
-    int numPoints, numDimensions, numAttrPP;
-    int numFaces, numVertPF, numAttrPF;
-
-    int faceIndexCounter = 0;
-    int pointIndexCounter = 0;
-
-    while (getline(inputTRIFile, line))
-    {
-        std::istringstream iss(line);
-
-        int _pointIndex;
-        double _x, _y, _z;
-
-        int _faceIndex;
-        int _aIndex, _bIndex, _cIndex;
-
-        if (!line.empty())
-        {
-            // std::cout << "Current Line: " << currentLine << "\n";
-            if (currentLine == 1)
-            {
-                iss >> numPoints >> numDimensions >> numAttrPP;
-                std::cout
-                    << "Points: " << numPoints << "\n"
-                    << "Dimensions: " << numDimensions << "\n"
-                    << "Attributes: " << numAttrPP << "\n\n";
-
-                listOfPoints.resize(numPoints);
-                points.resize(numPoints, std::vector<double>(numDimensions));
-            }
-            else if ((iss >> _pointIndex >> _x >> _y >> _z) && currentLine < numPoints + 2)
-            {
-                // formatting for points
-                // std::cout << "**Line: " << currentLine << "\n";
-                // std::cout << _pointIndex << " " << _x << " " << _y << " " << _z << "\n";
-                listOfPoints.at(_pointIndex) = Point(_pointIndex, _x, _y, _z);
-
-                points[pointIndexCounter][0] = _x;
-                points[pointIndexCounter][1] = _y;
-                points[pointIndexCounter][2] = _z;
-
-                pointIndexCounter++;
-            }
-            else if ((currentLine == numPoints + 2))
-            { //(iss>>numFaces>>numVertPF>>numAttrPF) &&
-                // std::cout << "Reading faces\n";
-                std::istringstream iss(line); // for some reason repeat this? clear string stream before?
-                // int numFaces = 1, numVertPF = 2, numAttrPF = 3;
-                //  std::cout << "?Line: " << currentLine << "\n";
-                if (!(iss >> numFaces >> numVertPF >> numAttrPF))
-                {
-                    std::cout << "wrong formatting\n";
-                }
-
-                else
-                {
-                    std::cout
-                        << "Faces: " << numFaces << "\n"
-                        << "Dimensions: " << numVertPF << "\n"
-                        << "Attributes: " << numAttrPF << "\n\n";
-
-                    listOfFaces.resize(numFaces);
-                    faces.resize(numFaces, std::vector<int>(numVertPF));
-                }
-            }
-            else if (currentLine > numPoints + 2 && currentLine < numPoints + numFaces + 3)
-            // 21 = 1+numPoints(8)+1+numFaces(10)+1+1 - account for lines which give number of items, and line at end
-            {
-                std::istringstream iss(line);
-
-                iss >> _faceIndex >> _aIndex >> _bIndex >> _cIndex; // there can be more attributes im not reading in here
-                // std::cout << "!Line: " << currentLine << "\n";
-
-                // faces arent indexed in phils example, use counter
-                // std::cout << faceIndexCounter << " " << _aIndex << " " << _bIndex << " " << _cIndex << "\n";
-                listOfFaces.at(faceIndexCounter) = Face(faceIndexCounter, _aIndex, _bIndex, _cIndex);
-
-                // testing eigen matrix of faces for boundary loop
-                faces[faceIndexCounter][0] = _aIndex;
-                faces[faceIndexCounter][1] = _bIndex;
-                faces[faceIndexCounter][2] = _cIndex;
-
-                faceIndexCounter++;
-            }
-            else
-            {
-                std::cout << "Other\n";
-            }
-            currentLine++;
-        }
-    }
-
-    return true;
-}
-
-bool calcTriangleAreas(std::vector<Point> &listOfPoints, // make const - need to alter classes of Point and face
-                       std::vector<Face> &listOfFaces,
-                       std::vector<double> &listOfAreas)
-
-{
-    // loop through the list of faces, for each face get the points, then use these in calc
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        // listOfAreas.at(i) = (x1 * y2 - y1 * x2) + (x2 * y3 - y2 * x3) + (x3 * y1 - y3 * x1);
-        listOfAreas.at(i) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
-                             listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) +
-                            (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() -
-                             listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) +
-                            (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
-                             listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x());
-    }
-    return true;
-}
-
-bool compare_double(double first, double second, double epsilon)
-{
-    if (fabs(first - second) < epsilon)
-        return true; // they are same
-    return false;    // they are not same
 }
