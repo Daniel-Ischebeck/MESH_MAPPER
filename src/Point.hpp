@@ -19,6 +19,11 @@ public:
     double get_y();
     double get_z();
 
+    void set_index(int newIndex);
+    void set_x(double newX);
+    void set_y(double newY);
+    void set_z(double newZ);
+
 private:
     int pointIndex;
     double x, y, z;

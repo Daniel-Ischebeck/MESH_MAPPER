@@ -36,6 +36,9 @@ bool outputTRIfile(std::vector<Point> &listOfPoints,
                    std::vector<Face> &listOfFaces,
                    std::string filePath);
 
+bool compare_double(double first, double second, double epsilon);
+
+double epsilon = 0.0001f;
 // briefly have a global varible for eigen matrix of faces
 // igl boundary loop test
 std::vector<std::vector<int>> faces;
@@ -63,9 +66,9 @@ int main()
     // Rotate the radome
     // first need to have a point matrix, and then rotate this
 
-    //Eigen::MatrixXd pointMatrix(listOfPoints.size(), 3);
+    // Eigen::MatrixXd pointMatrix(listOfPoints.size(), 3);
 
-    //points.resize(1961, std::vector<double>(3));
+    // points.resize(1961, std::vector<double>(3));
 
     for (int i = 0; i < listOfPoints.size(); i++)
     {
@@ -73,10 +76,10 @@ int main()
     }
     // std::cout << pointMatrix << "\n\n";
 
-    //Eigen::AngleAxisd rotate(3.14159, Eigen::Vector3d(0, 2.15, 0)); // M_PI
-    Eigen::AngleAxisd rollAngle(3.14/2, Eigen::Vector3d::UnitZ());
-    Eigen::AngleAxisd yawAngle(1.3, Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd pitchAngle(0.3, Eigen::Vector3d::UnitX());
+    // Eigen::AngleAxisd rotate(3.14159, Eigen::Vector3d(0, 2.15, 0)); // M_PI
+    Eigen::AngleAxisd rollAngle(0, Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd yawAngle(0, Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd pitchAngle(3.14159 / 2, Eigen::Vector3d::UnitX()); // M_PI
 
     Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
 
@@ -84,13 +87,18 @@ int main()
 
     pointMatrix = pointMatrix * rotationMatrix;
 
-    //loop through list of points and change the values, leave the indexes
-    //gonna require set functions for point
-    
+    // loop through list of points and change the values, leave the indexes
+    // gonna require set functions for point
+    for (int i = 0; i < listOfPoints.size(); i++) // update list of points after rotation
+    {
+        listOfPoints.at(i).set_x(pointMatrix(i, 0));
+        listOfPoints.at(i).set_y(pointMatrix(i, 1));
+        listOfPoints.at(i).set_z(pointMatrix(i, 2));
+        // std::cout << listOfPoints.at(i).get_z() << "\n";
+    }
 
-    //very bad global point matrix - fix this
-        outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
-
+    // very bad global point matrix - fix this
+    //outputTRIfile(listOfPoints, listOfFaces, "preRemoval_modifiedTRI.tri");
 
     /*
     we want to remove flat bottom of dome
@@ -107,21 +115,31 @@ int main()
 
     for (int i = 0; i < listOfFacesSizeBefore; i++)
     {
-        // a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
-        // b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
-        // c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
+        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
+        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
+        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
 
-        // For radome - its y coordinate for bottom faces
-        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
-        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
-        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
-
-        // copy elements that are NOT part of the base into a new list which will now use
-        if (!((a == b) && (b == c)))
+        // std::cout << "a: " << a << "\n";
+        //  For radome - its y coordinate for bottom faces
+        //  a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
+        //  b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
+        //  c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
+        if (a < -2.14)
         {
-            // std::cout << "Triangle: " << i << " is on x-y plane\n";
-            //  listOfFaces.erase(listOfFaces.begin() + i);
-            // numElementsRemoved++;
+            std::cout << "Test: " << i << "\ta: " << a << "\tb: " << b << "\tc: " << c << "\n";
+        }
+
+        if ((a == b) && (b == c))
+        {
+            std::cout << "Tri: " << i << " is bad\n\n";
+        }
+        // copy elements that are NOT part of the base into a new list which will now use
+        //if (!((a == b) && (b == c)))    //comparing doubles can be problematic, use function
+        if(!(compare_double(a,b,epsilon) && compare_double(b,c,epsilon)))
+        {
+            // std::cout << "Triangle: " << i << " is not on x-y plane\n";
+            //   listOfFaces.erase(listOfFaces.begin() + i);
+            //  numElementsRemoved++;
             numElementsAdded++;
 
             // newListOfFaces.at(rowCounter) = Face(i, listOfFaces.at(i).get_aIndex(),listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
@@ -130,8 +148,6 @@ int main()
             faces[rowCounter][0] = listOfFaces.at(i).get_aIndex();
             faces[rowCounter][1] = listOfFaces.at(i).get_bIndex();
             faces[rowCounter][2] = listOfFaces.at(i).get_cIndex();
-
-
 
             rowCounter++;
         }
@@ -159,6 +175,7 @@ int main()
         faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
     }
 
+    std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\n\n";
     // std::cout << "\nFace matrix:\n"
     //           << faceMatrix << "\n\n"
     //           << std::endl;
@@ -171,8 +188,8 @@ int main()
         return (-1);
     }
 
-    //outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
-
+    outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
+    std::cout << "Pre boundary_loop\n";
     Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
     igl::boundary_loop(faceMatrix, boundaryVerticies);
 
@@ -445,7 +462,7 @@ int main()
     Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
 
     std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
-    // solver.compute(A);
+    //solver.compute(A);
     lscg.compute(A);
     std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
     std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
@@ -457,7 +474,7 @@ int main()
     // }
 
     std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
-    // solution = solver.solve(RHS);
+    //solution = solver.solve(RHS);
     solution = lscg.solve(RHS);
     std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
     // if (solver.info() != Eigen::Success) //should this be solution###########################
@@ -465,8 +482,10 @@ int main()
     //     // solving failed
     //     return -1;
     // }
+    
     std::cout << "#iterations:     " << lscg.iterations() << std::endl;
     std::cout << "estimated error: " << lscg.error() << std::endl;
+   
     // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
     //           << solution << std::endl;
 
@@ -594,12 +613,12 @@ bool outputTRIfile(std::vector<Point> &listOfPoints,
     outputTRIfile << listOfPoints.size() << " 3 0\n"; // uv output points will always have 2 dimensions and 0 attributes
     for (int i = 0; i < listOfPoints.size(); i++)
     {
-        // outputTRIfile << i << " " << listOfPoints.at(i).get_x() << " "
-        //               << listOfPoints.at(i).get_y() << " "
-        //               << listOfPoints.at(i).get_z() << "\n";
-        outputTRIfile << i << " " << pointMatrix(i,0) << " "
-                      << pointMatrix(i,1) << " "
-                      << pointMatrix(i,2)<< "\n";
+        outputTRIfile << i << " " << listOfPoints.at(i).get_x() << " "
+                      << listOfPoints.at(i).get_y() << " "
+                      << listOfPoints.at(i).get_z() << "\n";
+        // outputTRIfile << i << " " << pointMatrix(i, 0) << " "
+        //               << pointMatrix(i, 1) << " "
+        //               << pointMatrix(i, 2) << "\n";
     }
 
     outputTRIfile << listOfFaces.size() << " 3 0\n"; // these attribute values may change later
@@ -740,4 +759,11 @@ bool calcTriangleAreas(std::vector<Point> &listOfPoints, // make const - need to
                              listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x());
     }
     return true;
+}
+
+bool compare_double(double first, double second, double epsilon)
+{
+    if (fabs(first - second) < epsilon)
+        return true; // they are same
+    return false;    // they are not same
 }
