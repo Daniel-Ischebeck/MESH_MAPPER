@@ -1,15 +1,12 @@
 #include "TRI_reader.hpp"
 #include "FileIO.hpp"
 
-
-
 int main()
 {
     std::chrono::steady_clock::time_point overallBegin = std::chrono::steady_clock::now();
 
     std::vector<std::vector<int>> faces;
     std::vector<std::vector<double>> points;
-    double epsilon = 0.0001f;
 
     std::vector<Point> listOfPoints; // underscore just to check different
     std::vector<Face> listOfFaces;
@@ -28,112 +25,16 @@ int main()
     // ########################
     // Rotate the radome
     // first need to have a point matrix, and then rotate this
-    std::cout << "Listofpoints.size " << listOfPoints.size() << "\n";
+
     Eigen::MatrixXd pointMatrix(listOfPoints.size(), 3);
 
-    // points.resize(1961, std::vector<double>(3));
-
-    for (int i = 0; i < listOfPoints.size(); i++)
-    {
-        pointMatrix.row(i) = Eigen::VectorXd::Map(&points[i][0], points[i].size());
-    }
-    // std::cout << pointMatrix << "\n\n";
-
-    // Eigen::AngleAxisd rotate(3.14159, Eigen::Vector3d(0, 2.15, 0)); // M_PI
-    Eigen::AngleAxisd rollAngle(0, Eigen::Vector3d::UnitZ());
-    Eigen::AngleAxisd yawAngle(0, Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd pitchAngle(3.14159 / 2, Eigen::Vector3d::UnitX()); // M_PI
-
-    Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-
-    Eigen::Matrix3d rotationMatrix = q.matrix();
-
-    pointMatrix = pointMatrix * rotationMatrix;
-
-    // loop through list of points and change the values, leave the indexes
-    // gonna require set functions for point
-    for (int i = 0; i < listOfPoints.size(); i++) // update list of points after rotation
-    {
-        listOfPoints.at(i).set_x(pointMatrix(i, 0));
-        listOfPoints.at(i).set_y(pointMatrix(i, 1));
-        listOfPoints.at(i).set_z(pointMatrix(i, 2));
-        // std::cout << listOfPoints.at(i).get_z() << "\n";
-    }
-
-    // very bad global point matrix - fix this
-    // outputTRIfile(listOfPoints, listOfFaces, "preRemoval_modifiedTRI.tri");
-
-    /*
-    we want to remove flat bottom of dome
-    i.e. triangles that have all verticies in the x-y plane -> z coordinate of all three verticies is the same
-    */
-    // #########################triangle removal
-    double a, b, c;
-    int listOfFacesSizeBefore = listOfFaces.size();
-    int numElementsRemoved = 0;
-    int numElementsAdded = 0;
-    int rowCounter = 0;
-
-    // std::vector<Face> newListOfFaces(listOfFacesSizeBefore);
-
-    for (int i = 0; i < listOfFacesSizeBefore; i++)
-    {
-        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
-        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
-        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
-
-        // std::cout << "a: " << a << "\n";
-        //  For radome - its y coordinate for bottom faces
-        //  a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
-        //  b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
-        //  c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
-
-        // copy elements that are NOT part of the base into a new list which will now use
-        // if (!((a == b) && (b == c)))    //comparing doubles can be problematic, use function
-        if (!(compare_double(a, b, epsilon) && compare_double(b, c, epsilon) && a < -2.14 && b < -2.14 && c < -2.14))
-        {
-            // std::cout << "Triangle: " << i << " is not on x-y plane\n";
-            //   listOfFaces.erase(listOfFaces.begin() + i);
-            //  numElementsRemoved++;
-            numElementsAdded++;
-
-            // newListOfFaces.at(rowCounter) = Face(i, listOfFaces.at(i).get_aIndex(),listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
-            listOfFaces.at(rowCounter) = Face(i, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
-
-            faces[rowCounter][0] = listOfFaces.at(i).get_aIndex();
-            faces[rowCounter][1] = listOfFaces.at(i).get_bIndex();
-            faces[rowCounter][2] = listOfFaces.at(i).get_cIndex();
-
-            rowCounter++;
-        }
-    }
-
-    // newListOfFaces.resize(numElementsAdded);
-    // for(int i=0; i<newListOfFaces.size(); i++){
-    //     std::cout << i << " " << newListOfFaces.at(i).get_aIndex() << " " << newListOfFaces.at(i).get_bIndex() << " " << newListOfFaces.at(i).get_cIndex() << "\n";
-    // }
-
-    listOfFaces.resize(numElementsAdded);
-
-    // face matrix also needs updating!
-
-    // faces.resize(numFaces, std::vector<int>(numVertPF));
-    //             faces[faceIndexCounter][0] = _aIndex;
-    //             faces[faceIndexCounter][1] = _bIndex;
-    //             faces[faceIndexCounter][2] = _cIndex;
-
-    faces.resize(numElementsAdded, std::vector<int>(3)); // always 3  verticies per row
-
     Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
-    }
+
+    rotateModel(listOfPoints, pointMatrix, points); // rotate the model so its orientated sensibly
+
+    removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
 
     std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\n\n";
-    // std::cout << "\nFace matrix:\n"
-    //           << faceMatrix << "\n\n"
-    //           << std::endl;
 
     std::vector<double> listOfAreas(listOfFaces.size());
 
@@ -144,49 +45,25 @@ int main()
     }
 
     outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
-    std::cout << "Pre boundary_loop\n";
+
     Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
     igl::boundary_loop(faceMatrix, boundaryVerticies);
 
     pinnedVerticies(0) = boundaryVerticies(0);
     pinnedVerticies(1) = boundaryVerticies(boundaryVerticies.size() / 2);
-    std::cout << "\n\nBoundary indexes\n"
-              << boundaryVerticies << std::endl;
+    // std::cout << "\n\nBoundary indexes\n"
+    //           << boundaryVerticies << std::endl;
     std::cout << "\n\nPinned Verticies\n"
               << pinnedVerticies << std::endl;
 
     std::cout << "\n\n\n\n";
-    
-    // #######################ALL matrix declarations
-    //  Eigen::SparseMatrix<double> M(listOfFaces.size(), listOfPoints.size());
-    //  Eigen::SparseMatrix<double> A_Mf1(listOfFaces.size(), listOfPoints.size());
-    //  Eigen::SparseMatrix<double> A_Mf2(listOfFaces.size(), listOfPoints.size());
 
-    // Eigen::MatrixXd b_Mp1 = Eigen::MatrixXd(listOfFaces.size(), 2);
-    // Eigen::MatrixXd b_Mp2 = Eigen::MatrixXd(listOfFaces.size(), 2);
-
-    // Eigen::SparseMatrix<double> A_Mf1_p1, A_Mf1_p2, A_Mf1_p3, A_Mf1_temp, A_Mf1_final;
-    // Eigen::SparseMatrix<double> A_Mf2_p1, A_Mf2_p2, A_Mf2_p3, A_Mf2_temp, A_Mf2_final;
-
-    // Eigen::SparseMatrix<double> A_top(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    // Eigen::SparseMatrix<double> A_bottom(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    // Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-
-    // Eigen::MatrixXd Bmat_top = Eigen::MatrixXd(listOfFaces.size(), 4); // 4 as two pinned verticeis
-    // Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd(listOfFaces.size(), 4);
-    // Eigen::MatrixXd Bmat = Eigen::MatrixXd(2 * listOfFaces.size(), 4);
-
+    // ####################### matrix declarations
     Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    Eigen::MatrixXd RHS(2*(listOfFaces.size()), 1); 
+    Eigen::MatrixXd RHS(2 * (listOfFaces.size()), 1);
     Eigen::VectorXd pinnedUV(4, 1);
 
     prepMatricies(listOfPoints, listOfFaces, listOfAreas, pinnedVerticies, pinnedUV, A, RHS);
-
-
-
-    // std::cout << "The least-squares solution is:\n"
-    //     //<< A.template bdcSvd<Eigen::ComputeThinU | Eigen::ComputeThinV>().solve(Bmat) << std::endl;
-    //      << A.colPivHouseholderQr().solve(RHS);
 
     Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
 
@@ -237,80 +114,10 @@ int main()
     //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
     //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
 
-    // Now we have a list of u coordinates, followed by v coordinates
-    /*We want to plot these on the UV plane
-    However this list does not contain the pinned coordiantes
-    First create a new list and insert the pinned coordiantes in the right place
-    The results can then be written to a tri file*/
-
-    // // efficency concerns of adding in the middle of a vector
-    //
-    // pre first pinned    //from zero to one before pinned
-    // first pinned        //firt pinned
-    // post first pinned   //from first pinned to one before second pinned
-    // second  pinned      //second pinned
-    // post second pinned  //from second pinned till the end
-
-    // //but pinned may be first or last?? worry about this if it happens?*/
-
     Eigen::VectorXd u_coords(listOfPoints.size(), 1);
     Eigen::VectorXd v_coords(listOfPoints.size(), 1);
 
-    // prepSolutionforOutput(u_coords, v_coords, pinnedVerticies, solution, listOfPoints.size())
-
-    for (int i = 0; i < pinnedVerticies(0); i++)
-    {
-        u_coords(i) = solution(i);
-    }
-
-    u_coords(pinnedVerticies(0)) = pinnedUV(0); // first pinned coord, u
-
-    for (int i = pinnedVerticies(0) + 1; i < pinnedVerticies(1); i++)
-    {
-        u_coords(i) = solution(i - 1); // i-1 as solution index as at this point weve passed one pinned point
-    }
-
-    u_coords(pinnedVerticies(1)) = pinnedUV(1); // second pinned coord, u
-
-    for (int i = pinnedVerticies(1) + 1; i < listOfPoints.size(); i++)
-    {
-        u_coords(i) = solution(i - 2); // now weve passed two pinned points
-    }
-
-    // std::cout << "\nU coords:\n"
-    //           << u_coords << "\n"
-    //           << std::endl;
-
-    //--------------v
-
-    int j = 0;
-    for (int i = solution.rows() / 2; i < pinnedVerticies(0) + solution.rows() / 2; i++)
-    {
-        v_coords(j) = solution(i);
-        j++;
-    }
-
-    v_coords(pinnedVerticies(0)) = pinnedUV(2);
-    j++;
-
-    for (int i = pinnedVerticies(0) + 1 + solution.rows() / 2; i < pinnedVerticies(1) + solution.rows() / 2; i++)
-    {
-        v_coords(j) = solution(i - 1);
-        j++;
-    }
-
-    v_coords(pinnedVerticies(1)) = pinnedUV(3);
-    j++;
-
-    for (int i = pinnedVerticies(1) + 1 + solution.rows() / 2; i < listOfPoints.size() + solution.rows() / 2; i++)
-    {
-        v_coords(j) = solution(i - 2);
-        j++;
-    }
-
-    // std::cout << "\nV coords:\n"
-    //           << v_coords << "\n\n"
-    //           << std::endl;
+    prepSolutionOutput(u_coords, v_coords, pinnedVerticies, solution, pinnedUV, listOfPoints.size());
 
     outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
 
@@ -347,7 +154,100 @@ bool compare_double(double first, double second, double epsilon)
     return false;    // they are not same
 }
 
-void prepMatricies(std::vector<Point> &listOfPoints,
+bool rotateModel(std::vector<Point> &listOfPoints,
+                 Eigen::MatrixXd &pointMatrix,
+                 std::vector<std::vector<double>> &points)
+{
+    for (int i = 0; i < listOfPoints.size(); i++)
+    {
+        pointMatrix.row(i) = Eigen::VectorXd::Map(&points[i][0], points[i].size());
+    }
+    // std::cout << pointMatrix << "\n\n";
+
+    // Eigen::AngleAxisd rotate(3.14159, Eigen::Vector3d(0, 2.15, 0)); // M_PI
+    Eigen::AngleAxisd rollAngle(0, Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd yawAngle(0, Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd pitchAngle(3.14159 / 2, Eigen::Vector3d::UnitX()); // M_PI
+
+    Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+
+    Eigen::Matrix3d rotationMatrix = q.matrix();
+
+    pointMatrix = pointMatrix * rotationMatrix;
+
+    // loop through list of points and change the values, leave the indexes
+    // gonna require set functions for point
+    for (int i = 0; i < listOfPoints.size(); i++) // update list of points after rotation
+    {
+        listOfPoints.at(i).set_x(pointMatrix(i, 0));
+        listOfPoints.at(i).set_y(pointMatrix(i, 1));
+        listOfPoints.at(i).set_z(pointMatrix(i, 2));
+    }
+
+    return true;
+}
+
+bool removeTriangles(std::vector<Point> &listOfPoints,
+                     std::vector<Face> &listOfFaces,
+                     std::vector<std::vector<int>> &faces,
+                     Eigen::MatrixXi &faceMatrix)
+{
+    // remove triangles,
+    // listofpoints, listoffaces, faces
+    // return numelementsadded value
+
+    double a, b, c;
+    int listOfFacesSizeBefore = listOfFaces.size();
+    int numElementsAdded = 0;
+    int rowCounter = 0;
+    double epsilon = 0.0001f;
+
+    for (int i = 0; i < listOfFacesSizeBefore; i++)
+    {
+        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
+        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
+        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
+
+        // std::cout << "a: " << a << "\n";
+        //  For radome - its y coordinate for bottom faces
+        //  a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
+        //  b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
+        //  c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
+
+        // copy elements that are NOT part of the base into a new list which will now use
+        // if (!((a == b) && (b == c)))    //comparing doubles can be problematic, use function
+        if (!(compare_double(a, b, epsilon) && compare_double(b, c, epsilon) && a < -2.14 && b < -2.14 && c < -2.14))
+        {
+            // std::cout << "Triangle: " << i << " is not on x-y plane\n";
+            //   listOfFaces.erase(listOfFaces.begin() + i);
+            //  numElementsRemoved++;
+            numElementsAdded++;
+
+            // newListOfFaces.at(rowCounter) = Face(i, listOfFaces.at(i).get_aIndex(),listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
+            listOfFaces.at(rowCounter) = Face(i, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
+
+            faces[rowCounter][0] = listOfFaces.at(i).get_aIndex();
+            faces[rowCounter][1] = listOfFaces.at(i).get_bIndex();
+            faces[rowCounter][2] = listOfFaces.at(i).get_cIndex();
+
+            rowCounter++;
+        }
+    }
+
+    listOfFaces.resize(numElementsAdded);
+    faces.resize(numElementsAdded, std::vector<int>(3)); // always 3  verticies per row
+    faceMatrix.resize(listOfFaces.size(), 3);
+
+    // Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+    }
+
+    return true;
+}
+
+bool prepMatricies(std::vector<Point> &listOfPoints,
                    std::vector<Face> &listOfFaces,
                    std::vector<double> &listOfAreas,
                    Eigen::VectorXi &pinnedVerticies,
@@ -368,13 +268,13 @@ void prepMatricies(std::vector<Point> &listOfPoints,
 
     Eigen::SparseMatrix<double> A_top(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
     Eigen::SparseMatrix<double> A_bottom(listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    //Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    // Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
 
     Eigen::MatrixXd Bmat_top = Eigen::MatrixXd(listOfFaces.size(), 4); // 4 as two pinned verticeis
     Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd(listOfFaces.size(), 4);
     Eigen::MatrixXd Bmat = Eigen::MatrixXd(2 * listOfFaces.size(), 4);
 
-   // Eigen::MatrixXd RHS(2 * (listOfFaces.size()), 1); // this is the only matrix we will use later
+    // Eigen::MatrixXd RHS(2 * (listOfFaces.size()), 1); // this is the only matrix we will use later
 
     // prepMatricies(Eigen::MatrixXd RHS)
     //
@@ -604,11 +504,92 @@ void prepMatricies(std::vector<Point> &listOfPoints,
     //           << std::endl;
 
     // Eigen::VectorXd pinnedUV(4, 1); // will always pin two coords, therefore 4 points
-    pinnedUV << 0, 1, 0, 0;         // choosing to pin in UV space, one coord at (0,0), (1,0)   //is this sensible for all shapes?
+    pinnedUV << 0, 1, 0, 0; // choosing to pin in UV space, one coord at (0,0), (1,0)   //is this sensible for all shapes?
     std::cout << "Pinned UV:\n\n"
               << pinnedUV << "\n\n"
               << std::endl;
 
     RHS = -Bmat * pinnedUV; // should rhs be neg? Ax=b
     std::cout << "Dimensions RHS: " << RHS.rows() << " x " << RHS.cols() << "\n";
+    return true;
+}
+
+// u_coords, v_coords, pinnedVerticies, solution, listOfPoints.size())
+bool prepSolutionOutput(Eigen::VectorXd &u_coords,
+                        Eigen::VectorXd &v_coords,
+                        Eigen::VectorXi &pinnedVerticies,
+                        Eigen::VectorXd &solution,
+                        Eigen::VectorXd &pinnedUV,
+                        int size_listOfPoints)
+{
+    // Now we have a list of u coordinates, followed by v coordinates
+    /*We want to plot these on the UV plane
+    However this list does not contain the pinned coordiantes
+    First create a new list and insert the pinned coordiantes in the right place
+    The results can then be written to a tri file*/
+
+    // // efficency concerns of adding in the middle of a vector
+    //
+    // pre first pinned    //from zero to one before pinned
+    // first pinned        //firt pinned
+    // post first pinned   //from first pinned to one before second pinned
+    // second  pinned      //second pinned
+    // post second pinned  //from second pinned till the end
+
+    // //but pinned may be first or last?? worry about this if it happens?*/
+
+    for (int i = 0; i < pinnedVerticies(0); i++)
+    {
+        u_coords(i) = solution(i);
+    }
+
+    u_coords(pinnedVerticies(0)) = pinnedUV(0); // first pinned coord, u
+
+    for (int i = pinnedVerticies(0) + 1; i < pinnedVerticies(1); i++)
+    {
+        u_coords(i) = solution(i - 1); // i-1 as solution index as at this point weve passed one pinned point
+    }
+
+    u_coords(pinnedVerticies(1)) = pinnedUV(1); // second pinned coord, u
+
+    for (int i = pinnedVerticies(1) + 1; i < size_listOfPoints; i++)
+    {
+        u_coords(i) = solution(i - 2); // now weve passed two pinned points
+    }
+
+    // std::cout << "\nU coords:\n"
+    //           << u_coords << "\n"
+    //           << std::endl;
+
+    //--------------v
+
+    int j = 0;
+    for (int i = solution.rows() / 2; i < pinnedVerticies(0) + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i);
+        j++;
+    }
+
+    v_coords(pinnedVerticies(0)) = pinnedUV(2);
+    j++;
+
+    for (int i = pinnedVerticies(0) + 1 + solution.rows() / 2; i < pinnedVerticies(1) + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i - 1);
+        j++;
+    }
+
+    v_coords(pinnedVerticies(1)) = pinnedUV(3);
+    j++;
+
+    for (int i = pinnedVerticies(1) + 1 + solution.rows() / 2; i < size_listOfPoints + solution.rows() / 2; i++)
+    {
+        v_coords(j) = solution(i - 2);
+        j++;
+    }
+
+    // std::cout << "\nV coords:\n"
+    //           << v_coords << "\n\n"
+    //           << std::endl;
+    return true;
 }
