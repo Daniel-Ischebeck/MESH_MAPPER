@@ -34,7 +34,8 @@ bool calcTriangleAreas(std::vector<Point> &listOfPoints,
 
 bool rotateModel(std::vector<Point> &listOfPoints,
                  Eigen::MatrixXd &pointMatrix,
-                 std::vector<std::vector<double>> &points);
+                 std::vector<std::vector<double>> &points,
+                 char axis);
 
 bool removeTriangles(std::vector<Point> &listOfPoints, 
                        std::vector<Face> &listOfFaces,

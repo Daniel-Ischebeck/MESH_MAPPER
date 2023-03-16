@@ -8,10 +8,10 @@ int main()
     std::vector<std::vector<int>> faces;
     std::vector<std::vector<double>> points;
 
-    std::vector<Point> listOfPoints; // underscore just to check different
+    std::vector<Point> listOfPoints; 
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "../files/radome.tri"; // part_sphere_high
+    std::string filePath = "../files/double_dome.tri"; // part_sphere_high
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
@@ -30,9 +30,27 @@ int main()
 
     Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
 
-    rotateModel(listOfPoints, pointMatrix, points); // rotate the model so its orientated sensibly
+    rotateModel(listOfPoints, pointMatrix, points, 'y'); // rotate the model so its orientated sensibly
 
-    removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
+    //double dome
+    /*we want to be able to select a seed point, and grow a patch from there
+    obvious choice is start at 0,0,0
+    currently my data strucutre means triangles dont know anything about their neighbours*/
+
+    //start at 0,0,0
+    //add all triangles that contain that point
+    //starting at first triangle added, choose one of its other points, add all triangles that contain that point
+    //beware this is all doubles so comparison function needeed
+    std::vector<Point> patch_listOfPoints; // underscore just to check different
+    std::vector<Face> patch_listOfFaces;
+
+    for(int i=0; i<listOfFaces.size(); i++){
+        if(listOfFaces.at(i).get_aIndex()==0 || listOfFaces.at(i).get_bIndex()==0 || listOfFaces.at(i).get_cIndex()==0) {
+            std::cout << "Triangle: " << i << " contains 0,0,0\n";
+        }
+    }
+
+    // removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
 
     std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\n\n";
 
@@ -46,6 +64,7 @@ int main()
 
     outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
 
+/*
     Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
     igl::boundary_loop(faceMatrix, boundaryVerticies);
 
@@ -123,7 +142,7 @@ int main()
 
     std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
     std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
-
+*/
     return 0;
 }
 
@@ -156,7 +175,8 @@ bool compare_double(double first, double second, double epsilon)
 
 bool rotateModel(std::vector<Point> &listOfPoints,
                  Eigen::MatrixXd &pointMatrix,
-                 std::vector<std::vector<double>> &points)
+                 std::vector<std::vector<double>> &points,
+                 char axis)
 {
     for (int i = 0; i < listOfPoints.size(); i++)
     {
@@ -165,9 +185,25 @@ bool rotateModel(std::vector<Point> &listOfPoints,
     // std::cout << pointMatrix << "\n\n";
 
     // Eigen::AngleAxisd rotate(3.14159, Eigen::Vector3d(0, 2.15, 0)); // M_PI
-    Eigen::AngleAxisd rollAngle(0, Eigen::Vector3d::UnitZ());
+    // set all to zero, axis switch_case selects what to change
+    Eigen::AngleAxisd pitchAngle(0, Eigen::Vector3d::UnitX());
     Eigen::AngleAxisd yawAngle(0, Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd pitchAngle(3.14159 / 2, Eigen::Vector3d::UnitX()); // M_PI
+    Eigen::AngleAxisd rollAngle(0, Eigen::Vector3d::UnitZ());
+
+    switch (axis)
+    {
+    case 'x':
+        pitchAngle.angle() = 3.14159 / 2;
+        break;
+
+    case 'y':
+        yawAngle.angle() = 3.14159 / 2;
+        break;
+
+    case 'z':
+        rollAngle.angle() = 3.14159 / 2;
+        break;
+    }
 
     Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
 
