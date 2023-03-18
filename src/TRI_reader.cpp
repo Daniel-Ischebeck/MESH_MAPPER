@@ -1,6 +1,8 @@
 #include "TRI_reader.hpp"
 #include "FileIO.hpp"
 
+#include <algorithm> //for testing if indicies is in listofindicies for preventing duplication in patch creation
+
 int main()
 {
     std::chrono::steady_clock::time_point overallBegin = std::chrono::steady_clock::now();
@@ -8,7 +10,7 @@ int main()
     std::vector<std::vector<int>> faces;
     std::vector<std::vector<double>> points;
 
-    std::vector<Point> listOfPoints; 
+    std::vector<Point> listOfPoints;
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
     std::string filePath = "../files/double_dome.tri"; // part_sphere_high
@@ -32,117 +34,282 @@ int main()
 
     rotateModel(listOfPoints, pointMatrix, points, 'y'); // rotate the model so its orientated sensibly
 
-    //double dome
+    // double dome
     /*we want to be able to select a seed point, and grow a patch from there
     obvious choice is start at 0,0,0
     currently my data strucutre means triangles dont know anything about their neighbours*/
 
-    //start at 0,0,0
-    //add all triangles that contain that point
-    //starting at first triangle added, choose one of its other points, add all triangles that contain that point
-    //beware this is all doubles so comparison function needeed
+    // start at 0,0,0
+    // add all triangles that contain that point
+    // starting at first triangle added, choose one of its other points, add all triangles that contain that point
+    // beware this is all doubles so comparison function needeed
     std::vector<Point> patch_listOfPoints; // underscore just to check different
     std::vector<Face> patch_listOfFaces;
 
-    for(int i=0; i<listOfFaces.size(); i++){
-        if(listOfFaces.at(i).get_aIndex()==0 || listOfFaces.at(i).get_bIndex()==0 || listOfFaces.at(i).get_cIndex()==0) {
+    std::vector<int> listOfIndicies(1000);
+
+    patch_listOfFaces.resize(100000); // guess, we can resize later
+    // patch_listOfPoints.resize(listOfPoints.size() / 2);
+
+    int patch_faceIndex = 0;
+
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        // start point
+        if (listOfFaces.at(i).get_aIndex() == 0 || listOfFaces.at(i).get_bIndex() == 0 || listOfFaces.at(i).get_cIndex() == 0)
+        { // here 0 is the index of the point (0,0,0)
             std::cout << "Triangle: " << i << " contains 0,0,0\n";
+            patch_listOfFaces.at(patch_faceIndex) = Face(patch_faceIndex, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
+            patch_faceIndex++;
         }
     }
+    listOfIndicies.push_back(0);
+    // patch_listOfFaces.at()
 
+    // weve got out first triangles aroung (0,0,0)
+    // Triangle 0 contains points 0,1,7744
+
+    // index = 0;
+    // find_triangles(patch_listOfFaces.at(index).getbIndex()) - returns a vector of the indexes of the triangles in listOfFaces
+    // i.e. find me the triangles that contain index 1
+    // add these triangles to the patch_listOfFaces
+    int indexA, indexB, indexC;
+
+    // for (int i = 0; i < patch_faceIndex; i++)
+    // {
+    //     std::cout << "i: " << patch_listOfFaces.at(i).get_faceIndex() << "\n";
+    // }
+
+    for (int j = 0; j < 10000; j++)
+    {
+    label:
+
+        indexB = patch_listOfFaces.at(j).get_bIndex();
+
+        if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexB) != listOfIndicies.end())
+        {
+            /* v contains x */
+            j++;
+            goto label;
+        }
+        else
+        {
+            listOfIndicies.push_back(indexB);
+        }
+
+        Eigen::VectorXi resultVectorB = find_triangles(indexB, listOfFaces);
+        // std::cout << "result: \n"
+        //           << resultVector << "\n";
+
+        for (int i = 0; i < resultVectorB.rows(); i++)
+        {
+            // listOfFaces.at(resultVector(i))
+            patch_listOfFaces.at(patch_faceIndex) = Face(patch_faceIndex, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+            patch_faceIndex++;
+        }
+
+        indexC = patch_listOfFaces.at(j).get_cIndex();
+        if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexC) != listOfIndicies.end())
+        {
+            /* v contains x */
+            j++;
+            goto label;
+        }
+        else
+        {
+            listOfIndicies.push_back(indexC);
+        }
+        Eigen::VectorXi resultVectorC = find_triangles(indexC, listOfFaces);
+        // std::cout << "result: \n"
+        //           << resultVector << "\n";
+
+        for (int i = 0; i < resultVectorC.rows(); i++)
+        {
+            // listOfFaces.at(resultVector(i))
+            patch_listOfFaces.at(patch_faceIndex) = Face(patch_faceIndex, listOfFaces.at(resultVectorC(i)).get_aIndex(), listOfFaces.at(resultVectorC(i)).get_bIndex(), listOfFaces.at(resultVectorC(i)).get_cIndex());
+            patch_faceIndex++;
+        }
+
+        // ###########A after others due to intiial zeros from previous
+        //if(j)
+        // indexA = patch_listOfFaces.at(j).get_aIndex();
+        // if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexA) != listOfIndicies.end())
+        // {
+        //     /* v contains x */
+        //     j++;
+        //     //std::cout << "testing\n";
+        //     goto label;
+        // }
+        // else
+        // {
+        //     std::cout << "now?\n";
+        //     std::cout << indexA << "\n";
+        //     listOfIndicies.push_back(indexA);
+        // }
+        // Eigen::VectorXi resultVectorA = find_triangles(indexA, listOfFaces);
+        // // std::cout << "result: \n"
+        // //           << resultVector << "\n";
+
+        // for (int i = 0; i < resultVectorA.rows(); i++)
+        // {
+        //     // listOfFaces.at(resultVector(i))
+        //     patch_listOfFaces.at(patch_faceIndex) = Face(patch_faceIndex, listOfFaces.at(resultVectorA(i)).get_aIndex(), listOfFaces.at(resultVectorA(i)).get_bIndex(), listOfFaces.at(resultVectorA(i)).get_cIndex());
+        //     patch_faceIndex++;
+        // }
+    }
+    // loop through vector indexes copying relevant elements from listoffaces and add them to patch list
+
+    // std::cout << "patch_listOfFaces.at(0).get_bIndex() is" << patch_listOfFaces.at(0).get_bIndex() << "\n";
+    // int index = 0;
+
+    // for (index; index < 5000; index++)
+    // {
+
+    //     for (int i = 0; i < listOfFaces.size(); i++)
+    //     {
+    //         int pointWereLookingAt = patch_listOfFaces.at(index).get_bIndex();
+    //         // index++;
+    //         //  if the point were looking at is already part of the patch we dont want to add it again.
+    //         if (pointWereLookingAt <= patch_faceIndex) // i.e. weve already got that point
+    //         {
+    //             //std::cout << "idk" << i << "\n";
+    //             pointWereLookingAt = -1;    //so that it cant be added againa, compare will never be true
+    //         }
+
+    //         if (listOfFaces.at(i).get_aIndex() == pointWereLookingAt ||
+    //             listOfFaces.at(i).get_bIndex() == pointWereLookingAt ||
+    //             listOfFaces.at(i).get_cIndex() == pointWereLookingAt)
+    //         {
+    //             patch_listOfFaces.at(patch_faceIndex) = Face(patch_faceIndex, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
+    //             patch_faceIndex++;
+    //         }
+
+    //         if (patch_listOfFaces.size() == 100)
+    //         {
+    //             std::cout << "Patch size 100\n";
+    //             break;
+    //         }
+    //     }
+    //     // std::cout << "Index loop\n";
+    // }
+
+    // for (Face theFace : patch_listOfFaces)
+    // { // reference so not copying about?
+    //     // double aCorner = listOfPoints.at(theFace.get_aIndex()).get_x();
+    //     int aCorner = theFace.get_bIndex();
+    //     for (int i = 0; i < listOfFaces.size(); i++)
+    //     {
+    //         if (listOfFaces.at(i).get_aIndex() == aCorner || listOfFaces.at(i).get_bIndex() == aCorner || listOfFaces.at(i).get_cIndex() == aCorner)
+    //         {
+    //             std::cout << "Triangle: " << i << " contains point " << aCorner << "\n";
+    //             patch_listOfFaces.at(patch_faceIndex) = Face(patch_faceIndex, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
+    //             patch_faceIndex++;
+    //         }
+    //     }
+    //     if (patch_listOfFaces.size() == 100)
+    //     {
+    //         std::cout << "Patch size 100\n";
+    //         break;
+    //     }
+    // }
+
+    patch_listOfFaces.resize(patch_faceIndex);
     // removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
 
-    std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\n\n";
+    outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
 
-    std::vector<double> listOfAreas(listOfFaces.size());
+    // std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\n\n";
 
-    if (!calcTriangleAreas(listOfPoints, listOfFaces, listOfAreas))
-    {
-        std::cout << "Triangle calcualtion failed\n";
-        return (-1);
-    }
+    // std::vector<double> listOfAreas(listOfFaces.size());
 
-    outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
-
-/*
-    Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
-    igl::boundary_loop(faceMatrix, boundaryVerticies);
-
-    pinnedVerticies(0) = boundaryVerticies(0);
-    pinnedVerticies(1) = boundaryVerticies(boundaryVerticies.size() / 2);
-    // std::cout << "\n\nBoundary indexes\n"
-    //           << boundaryVerticies << std::endl;
-    std::cout << "\n\nPinned Verticies\n"
-              << pinnedVerticies << std::endl;
-
-    std::cout << "\n\n\n\n";
-
-    // ####################### matrix declarations
-    Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-    Eigen::MatrixXd RHS(2 * (listOfFaces.size()), 1);
-    Eigen::VectorXd pinnedUV(4, 1);
-
-    prepMatricies(listOfPoints, listOfFaces, listOfAreas, pinnedVerticies, pinnedUV, A, RHS);
-
-    Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
-
-    std::cout << "Calculating...\n";
-
-    // solution = A.colPivHouseholderQr().solve(RHS);
-
-    // SOlver
-    // Matrix needs to be compressed before it can be used with solver
-    A.makeCompressed();
-    std::cout << "Dimensions (post compression) A: " << A.rows() << " x " << A.cols() << "\n";
-    // std::ofstream A_sparseMatrixfile;
-    // A_sparseMatrixfile.open("A_sparse.txt");
-    // A_sparseMatrixfile << Eigen::MatrixXd(A);
-
-    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
-
-    std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
-    // solver.compute(A);
-    lscg.compute(A);
-    std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
-    std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
-
-    // if (solver.info() != Eigen::Success)
+    // if (!calcTriangleAreas(listOfPoints, listOfFaces, listOfAreas))
     // {
-    //     // decomposition failed
-    //     return -1;
+    //     std::cout << "Triangle calcualtion failed\n";
+    //     return (-1);
     // }
 
-    std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
-    // solution = solver.solve(RHS);
-    solution = lscg.solve(RHS);
-    std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
-    // if (solver.info() != Eigen::Success) //should this be solution###########################
-    // {
-    //     // solving failed
-    //     return -1;
-    // }
+    // outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
+    // outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
 
-    std::cout << "#iterations:     " << lscg.iterations() << std::endl;
-    std::cout << "estimated error: " << lscg.error() << std::endl;
+    /*
+        Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
+        igl::boundary_loop(faceMatrix, boundaryVerticies);
 
-    // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
-    //           << solution << std::endl;
+        pinnedVerticies(0) = boundaryVerticies(0);
+        pinnedVerticies(1) = boundaryVerticies(boundaryVerticies.size() / 2);
+        // std::cout << "\n\nBoundary indexes\n"
+        //           << boundaryVerticies << std::endl;
+        std::cout << "\n\nPinned Verticies\n"
+                  << pinnedVerticies << std::endl;
 
-    std::cout << "Time for solver (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_solve - begin_solve).count() / 1000000.0 << std::endl;
-    //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
-    //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
+        std::cout << "\n\n\n\n";
 
-    Eigen::VectorXd u_coords(listOfPoints.size(), 1);
-    Eigen::VectorXd v_coords(listOfPoints.size(), 1);
+        // ####################### matrix declarations
+        Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+        Eigen::MatrixXd RHS(2 * (listOfFaces.size()), 1);
+        Eigen::VectorXd pinnedUV(4, 1);
 
-    prepSolutionOutput(u_coords, v_coords, pinnedVerticies, solution, pinnedUV, listOfPoints.size());
+        prepMatricies(listOfPoints, listOfFaces, listOfAreas, pinnedVerticies, pinnedUV, A, RHS);
 
-    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
+        Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
 
-    std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
-    std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
-*/
+        std::cout << "Calculating...\n";
+
+        // solution = A.colPivHouseholderQr().solve(RHS);
+
+        // SOlver
+        // Matrix needs to be compressed before it can be used with solver
+        A.makeCompressed();
+        std::cout << "Dimensions (post compression) A: " << A.rows() << " x " << A.cols() << "\n";
+        // std::ofstream A_sparseMatrixfile;
+        // A_sparseMatrixfile.open("A_sparse.txt");
+        // A_sparseMatrixfile << Eigen::MatrixXd(A);
+
+        // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+        Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
+
+        std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
+        // solver.compute(A);
+        lscg.compute(A);
+        std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
+        std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
+
+        // if (solver.info() != Eigen::Success)
+        // {
+        //     // decomposition failed
+        //     return -1;
+        // }
+
+        std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
+        // solution = solver.solve(RHS);
+        solution = lscg.solve(RHS);
+        std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
+        // if (solver.info() != Eigen::Success) //should this be solution###########################
+        // {
+        //     // solving failed
+        //     return -1;
+        // }
+
+        std::cout << "#iterations:     " << lscg.iterations() << std::endl;
+        std::cout << "estimated error: " << lscg.error() << std::endl;
+
+        // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
+        //           << solution << std::endl;
+
+        std::cout << "Time for solver (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_solve - begin_solve).count() / 1000000.0 << std::endl;
+        //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
+        //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
+
+        Eigen::VectorXd u_coords(listOfPoints.size(), 1);
+        Eigen::VectorXd v_coords(listOfPoints.size(), 1);
+
+        prepSolutionOutput(u_coords, v_coords, pinnedVerticies, solution, pinnedUV, listOfPoints.size());
+
+        outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
+
+        std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
+        std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
+    */
     return 0;
 }
 
@@ -628,4 +795,31 @@ bool prepSolutionOutput(Eigen::VectorXd &u_coords,
     //           << v_coords << "\n\n"
     //           << std::endl;
     return true;
+}
+
+Eigen::VectorXi find_triangles(int indexWereAfter,
+                               std::vector<Face> &listOfFaces)
+{
+    Eigen::VectorXi indexVector(2, 1); // assuming at least two triangles include a given point
+    int count = 0;
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+
+        if (listOfFaces.at(i).get_aIndex() == indexWereAfter ||
+            listOfFaces.at(i).get_bIndex() == indexWereAfter ||
+            listOfFaces.at(i).get_cIndex() == indexWereAfter)
+        { // here 0 is the index of the point (0,0,0)
+                //std::cout << "Triangle: " << i << " contains index " << indexWereAfter << "\n";
+            // patch_listOfFaces.at(patch_faceIndex) = Face(patch_faceIndex, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
+            // patch_faceIndex++;
+            if (count >= indexVector.rows())
+            {
+                indexVector.conservativeResize(count + 1, 1); // conservative resize to not lose data during reallocation
+            }
+            indexVector(count) = i;
+            count++;
+        }
+    }
+    // indexVector.conservativeResize();
+    return indexVector;
 }

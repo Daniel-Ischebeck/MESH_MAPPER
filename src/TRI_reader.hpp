@@ -26,27 +26,28 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                    Eigen::SparseMatrix<double> &A,
                    Eigen::MatrixXd &RHS);
 
-
 bool calcTriangleAreas(std::vector<Point> &listOfPoints,
                        std::vector<Face> &listOfFaces,
                        std::vector<double> &listOfAreas);
-
 
 bool rotateModel(std::vector<Point> &listOfPoints,
                  Eigen::MatrixXd &pointMatrix,
                  std::vector<std::vector<double>> &points,
                  char axis);
 
-bool removeTriangles(std::vector<Point> &listOfPoints, 
-                       std::vector<Face> &listOfFaces,
-                       std::vector<std::vector<int>> &faces,
-                       Eigen::MatrixXi &faceMatrix);
+bool removeTriangles(std::vector<Point> &listOfPoints,
+                     std::vector<Face> &listOfFaces,
+                     std::vector<std::vector<int>> &faces,
+                     Eigen::MatrixXi &faceMatrix);
 
 bool compare_double(double first, double second, double epsilon);
 
 bool prepSolutionOutput(Eigen::VectorXd &u_coords,
-            Eigen::VectorXd &v_coords,
-            Eigen::VectorXi &pinnedVerticies,
-            Eigen::VectorXd &solution,
-            Eigen::VectorXd &pinnedUV,
-            int size_listOfPoints);
+                        Eigen::VectorXd &v_coords,
+                        Eigen::VectorXi &pinnedVerticies,
+                        Eigen::VectorXd &solution,
+                        Eigen::VectorXd &pinnedUV,
+                        int size_listOfPoints);
+
+Eigen::VectorXi find_triangles(int indexWereAfter,
+                               std::vector<Face> &listOfFaces);
