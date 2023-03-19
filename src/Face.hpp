@@ -14,6 +14,8 @@ public:
 
     Face &operator=(const Face &theFace);
 
+    bool operator==(const Face &theFace);
+
     int get_faceIndex();
     int get_aIndex();
     int get_bIndex();

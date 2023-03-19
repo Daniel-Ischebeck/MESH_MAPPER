@@ -34,6 +34,15 @@ Face &Face::operator=(const Face &theFace)
     return *this;
 }
 
+//equivalent
+bool Face::operator==(const Face &theFace)
+{
+   if (faceIndex == theFace.faceIndex && aIndex == theFace.aIndex && bIndex == theFace.bIndex && cIndex == theFace.cIndex)
+      return true;
+  return false;
+}
+
+
 int Face::get_faceIndex() { return faceIndex; }
 int Face::get_aIndex() { return aIndex; }
 int Face::get_bIndex() { return bIndex; }
