@@ -58,7 +58,7 @@ int main()
         // start point
         if (listOfFaces.at(i).get_aIndex() == 0 || listOfFaces.at(i).get_bIndex() == 0 || listOfFaces.at(i).get_cIndex() == 0)
         { // here 0 is the index of the point (0,0,0)
-            std::cout << "Triangle: " << i << " contains 0,0,0\n";
+            // std::cout << "Triangle: " << i << " contains 0,0,0\n";
             patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
             patch_faceIndex++;
         }
@@ -87,20 +87,20 @@ int main()
 label:
     for (j; j < 10000; j++)
     {
-        //std::cout<<"j: " << j << "\n";
+        // std::cout<<"j: " << j << "\n";
 
         indexB = patch_listOfFaces.at(j).get_bIndex();
 
         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexB) != listOfIndicies.end())
         {
             /* v contains x */
-            //j++;
-            // std::cout << "indexB: " <<  indexB << "\n";
-            //goto label;
+            // j++;
+            //  std::cout << "indexB: " <<  indexB << "\n";
+            // goto label;
         }
         else
         {
-            //std::cout << j << " B\n";
+            // std::cout << j << " B\n";
             listOfIndicies.push_back(indexB);
             Eigen::VectorXi resultVectorB = find_triangles(indexB, listOfFaces);
             // std::cout << "result: \n"
@@ -114,15 +114,15 @@ label:
                 {
                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
                     // j++;
-                    //goto label;
-                    //break;
+                    // goto label;
+                    // break;
                 }
                 else
                 {
                     if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
                     {
                         goto done;
-                        //break;
+                        // break;
                     }
                     patch_listOfFaces.at(patch_faceIndex) = theFace;
                     patch_faceIndex++;
@@ -132,24 +132,44 @@ label:
             }
         }
 
-        //std::cout << "patch_faceIndex: " << patch_faceIndex << "\n";
+        // std::cout << "patch_faceIndex: " << patch_faceIndex << "\n";
     }
 
 done:
 
-    //currently we now want to work with patch_list_of_faces not the normal one
-    //also as we havent removed triangles from this model, we havent generated the face matrix yet
-    //ideally we would have options that we could select, i.e. preprocess -Y/N , remove tri - Y/N, select patch - Y/N etc/
-
+    // currently we now want to work with patch_list_of_faces not the normal one
+    // also as we havent removed triangles from this model, we havent generated the face matrix yet
+    // ideally we would have options that we could select, i.e. preprocess -Y/N , remove tri - Y/N, select patch - Y/N etc/
 
     patch_listOfFaces.resize(patch_faceIndex);
     // removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
 
-
-
     outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
 
-/*
+    listOfFaces.swap(patch_listOfFaces);
+
+    // for(int i=0; i<10; i++)  //testing swap
+    // {
+    //     std::cout << "i: " << i << " lof: " << listOfFaces.at(i).get_bIndex() << "\n";
+    // }
+
+//#################prep face matrix after patch selection
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        faces[i][0] = listOfFaces.at(i).get_aIndex();
+        faces[i][1] = listOfFaces.at(i).get_bIndex();
+        faces[i][2] = listOfFaces.at(i).get_cIndex();
+    }
+
+    faces.resize(listOfFaces.size(),std::vector<int>(3) );
+    faceMatrix.resize(listOfFaces.size(), 3);
+
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+    }
+//########################
+
     // std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\n\n";
 
     std::vector<double> listOfAreas(listOfFaces.size());
@@ -163,85 +183,84 @@ done:
     // outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
     // outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
 
-    
-        Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
-        igl::boundary_loop(faceMatrix, boundaryVerticies);
+    Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
+    igl::boundary_loop(faceMatrix, boundaryVerticies);
 
-        pinnedVerticies(0) = boundaryVerticies(0);
-        pinnedVerticies(1) = boundaryVerticies(boundaryVerticies.size() / 2);
-        // std::cout << "\n\nBoundary indexes\n"
-        //           << boundaryVerticies << std::endl;
-        std::cout << "\n\nPinned Verticies\n"
-                  << pinnedVerticies << std::endl;
+    pinnedVerticies(0) = boundaryVerticies(0);
+    pinnedVerticies(1) = boundaryVerticies(boundaryVerticies.size() / 2);
+    // std::cout << "\n\nBoundary indexes\n"
+    //           << boundaryVerticies << std::endl;
+    std::cout << "\n\nPinned Verticies\n"
+              << pinnedVerticies << std::endl;
 
-        std::cout << "\n\n\n\n";
+    std::cout << "\n\n\n\n";
 
-        // ####################### matrix declarations
-        Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
-        Eigen::MatrixXd RHS(2 * (listOfFaces.size()), 1);
-        Eigen::VectorXd pinnedUV(4, 1);
+    // // ####################### matrix declarations
+    Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
+    Eigen::MatrixXd RHS(2 * (listOfFaces.size()), 1);
+    Eigen::VectorXd pinnedUV(4, 1);
 
-        prepMatricies(listOfPoints, listOfFaces, listOfAreas, pinnedVerticies, pinnedUV, A, RHS);
+    prepMatricies(listOfPoints, listOfFaces, listOfAreas, pinnedVerticies, pinnedUV, A, RHS);
 
-        Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
+    Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
 
-        std::cout << "Calculating...\n";
+    std::cout << "Calculating...\n";
 
-        // solution = A.colPivHouseholderQr().solve(RHS);
+    // solution = A.colPivHouseholderQr().solve(RHS);
 
-        // SOlver
-        // Matrix needs to be compressed before it can be used with solver
-        A.makeCompressed();
-        std::cout << "Dimensions (post compression) A: " << A.rows() << " x " << A.cols() << "\n";
-        // std::ofstream A_sparseMatrixfile;
-        // A_sparseMatrixfile.open("A_sparse.txt");
-        // A_sparseMatrixfile << Eigen::MatrixXd(A);
+    // SOlver
+    // Matrix needs to be compressed before it can be used with solver
+    A.makeCompressed();
+    std::cout << "Dimensions (post compression) A: " << A.rows() << " x " << A.cols() << "\n";
+    // std::ofstream A_sparseMatrixfile;
+    // A_sparseMatrixfile.open("A_sparse.txt");
+    // A_sparseMatrixfile << Eigen::MatrixXd(A);
 
-        // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-        Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
+    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
 
-        std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
-        // solver.compute(A);
-        lscg.compute(A);
-        std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
-        std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
+    std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
+    // solver.compute(A);
+    lscg.compute(A);
+    std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
+    std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
 
-        // if (solver.info() != Eigen::Success)
-        // {
-        //     // decomposition failed
-        //     return -1;
-        // }
+    // if (solver.info() != Eigen::Success)
+    // {
+    //     // decomposition failed
+    //     return -1;
+    // }
 
-        std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
-        // solution = solver.solve(RHS);
-        solution = lscg.solve(RHS);
-        std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
-        // if (solver.info() != Eigen::Success) //should this be solution###########################
-        // {
-        //     // solving failed
-        //     return -1;
-        // }
+    std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
+    // solution = solver.solve(RHS);
+    solution = lscg.solve(RHS);
+    std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
+    // if (solver.info() != Eigen::Success) //should this be solution###########################
+    // {
+    //     // solving failed
+    //     return -1;
+    // }
 
-        std::cout << "#iterations:     " << lscg.iterations() << std::endl;
-        std::cout << "estimated error: " << lscg.error() << std::endl;
+    std::cout << "#iterations:     " << lscg.iterations() << std::endl;
+    std::cout << "estimated error: " << lscg.error() << std::endl;
 
-        // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
-        //           << solution << std::endl;
+    // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
+    //           << solution << std::endl;
 
-        std::cout << "Time for solver (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_solve - begin_solve).count() / 1000000.0 << std::endl;
-        //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
-        //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
+    std::cout << "Time for solver (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_solve - begin_solve).count() / 1000000.0 << std::endl;
+    //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
+    //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
 
-        Eigen::VectorXd u_coords(listOfPoints.size(), 1);
-        Eigen::VectorXd v_coords(listOfPoints.size(), 1);
+    Eigen::VectorXd u_coords(listOfPoints.size(), 1);
+    Eigen::VectorXd v_coords(listOfPoints.size(), 1);
 
-        prepSolutionOutput(u_coords, v_coords, pinnedVerticies, solution, pinnedUV, listOfPoints.size());
+    prepSolutionOutput(u_coords, v_coords, pinnedVerticies, solution, pinnedUV, listOfPoints.size());
 
-        outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
+    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
 
-        std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
-        std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
-*/
+    std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
+    std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
+
     return 0;
 }
 
