@@ -14,6 +14,8 @@
 #include <Eigen/Geometry> //for rotation
 
 #include <igl/boundary_loop.h>
+#include <igl/boundary_facets.h>
+
 
 #include "Point.hpp"
 #include "Face.hpp"
@@ -51,3 +53,5 @@ bool prepSolutionOutput(Eigen::VectorXd &u_coords,
 
 Eigen::VectorXi find_triangles(int indexWereAfter,
                                std::vector<Face> &listOfFaces);
+
+bool compareEdges(std::vector<Edge> &first, std::vector<Edge> &second);

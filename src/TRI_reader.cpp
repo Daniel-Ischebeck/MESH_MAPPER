@@ -56,7 +56,7 @@ int main()
     for (int i = 0; i < listOfFaces.size(); i++)
     {
         // start point
-        if (listOfFaces.at(i).get_aIndex() == 3919 || listOfFaces.at(i).get_bIndex() == 3919 || listOfFaces.at(i).get_cIndex() == 3919) // 7,9,26,   index _ is good start point for patch_antenna, aircraft wing
+        if (listOfFaces.at(i).get_aIndex() == 3919 || listOfFaces.at(i).get_bIndex() == 3919 || listOfFaces.at(i).get_cIndex() == 3919) // 7,9,26,   index _ is good start point for patch_antenna, aircraft wing 3919?
         {                                                                                                                               // here 0 is the index of the point (0,0,0) - for double dome
             // std::cout << "Triangle: " << i << " contains 0,0,0\n";
             patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
@@ -110,182 +110,273 @@ int main()
     // edgesssss
     // get the edge, the compare the two points to the points of another edge.   if theEdge == theOtherEdge
 
-
     std::cout << "Tri 23, edge index 1: " << listOfFaces.at(23).get_faceEdges().at(0).get_index1() << "\n";
-    if(listOfFaces.at(23).get_faceEdges().at(0) == listOfFaces.at(6977).get_faceEdges().at(0)){
+    if (listOfFaces.at(23).get_faceEdges().at(0) == listOfFaces.at(6977).get_faceEdges().at(0))
+    {
         std::cout << "Tri 23 and 6977 share an edge\n";
     }
 
-
-    for (int i = 0; i < 100; i++)
+    if (compareEdges(listOfFaces.at(23).get_faceEdges(), listOfFaces.at(6977).get_faceEdges()))
     {
-        // std::cout << "Z normal: " << listOfZNormals.at(i) << "\n";
+        std::cout << "##Tri 23 and 6977 share an edge\n";
+    }
+    // std::vector<std::vector<Edge>> listOfEdges;
+
+    // can we determine boundary edges and then use these as stop points
+
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        faces[i][0] = listOfFaces.at(i).get_aIndex();
+        faces[i][1] = listOfFaces.at(i).get_bIndex();
+        faces[i][2] = listOfFaces.at(i).get_cIndex();
+    }
+    faces.resize(listOfFaces.size(), std::vector<int>(3));
+    faceMatrix.resize(listOfFaces.size(), 3);
+
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
     }
 
-    int indexA, indexB, indexC;
-    int j = 0;
+    // std::cout << faceMatrix << "\n\n";
 
-label:
-    for (j; j < 200; j++)
+    Eigen::VectorXi boundaryModel, boundaryFacets;
+
+    igl::boundary_loop(faceMatrix, boundaryModel);
+    // igl::boundary_facets(faceMatrix, boundaryFacets);
+
+    std::cout << "\n\nBoundary Model\n"
+              << boundaryModel.size() << "\n"
+              << boundaryModel << std::endl;
+
+    // std::cout << "\n\nBoundary Model\n"
+    //           << boundaryFacets.size() << "\n"
+    //           << boundaryFacets << std::endl;
+
+    for (int i = 0; i < patch_faceIndex; i++)
     {
-        // std::cout<<"j: " << j << "\n";
-
-        indexB = patch_listOfFaces.at(j).get_bIndex();
-
-        if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexB) != listOfIndicies.end())
-        {
-            // v contains x
-            // j++;
-            //  std::cout << "indexB: " <<  indexB << "\n";
-            // goto label;
-        }
-        else
-        {
-            // std::cout << j << " B\n";
-            listOfIndicies.push_back(indexB);
-            Eigen::VectorXi resultVectorB = find_triangles(indexB, listOfFaces);
-            // std::cout << "result: \n"
-            //           << resultVector << "\n";
-
-            for (int i = 0; i < resultVectorB.rows(); i++)
-            {
-                // only want to adda  new patch if it hasnt already been included before
-                Face theFace = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
-                {
-                    // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    // j++;
-                    // goto label;
-                    // break;
-                }
-                else
-                {
-                    // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
-                    // {
-                    //     goto done;
-                    //     // break;
-                    // }
-                    if (1) // listOfZNormals.at(i) < 0)
-                    {
-                        patch_listOfFaces.at(patch_faceIndex) = theFace;
-                        patch_faceIndex++;
-                        std::cout << "B\tZ normal: " << listOfZNormals.at(i) << "\n";
-                    }
-                    // patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    // patch_faceIndex++;
-                }
-                // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                //  patch_faceIndex++;
-            }
-        }
-
-        indexC = patch_listOfFaces.at(j).get_cIndex();
-
-        if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexC) != listOfIndicies.end())
-        {
-            // v contains x
-            // j++;
-            //  std::cout << "indexB: " <<  indexB << "\n";
-            // goto label;
-        }
-        else
-        {
-            // std::cout << j << " B\n";
-            listOfIndicies.push_back(indexC);
-            Eigen::VectorXi resultVectorC = find_triangles(indexC, listOfFaces);
-            // std::cout << "result: \n"
-            //           << resultVector << "\n";
-
-            for (int i = 0; i < resultVectorC.rows(); i++)
-            {
-                // only want to adda  new patch if it hasnt already been included before
-                Face theFace = Face(0, listOfFaces.at(resultVectorC(i)).get_aIndex(), listOfFaces.at(resultVectorC(i)).get_bIndex(), listOfFaces.at(resultVectorC(i)).get_cIndex());
-                if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
-                {
-                    // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    // j++;
-                    // goto label;
-                    // break;
-                }
-                else
-                {
-
-                    // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
-                    // {
-                    //     goto done;
-                    //     // break;
-                    // }
-                    if (1) // listOfZNormals.at(i) < 0)
-                    {
-                        patch_listOfFaces.at(patch_faceIndex) = theFace;
-                        patch_faceIndex++;
-                        std::cout << "C\tZ normal: " << listOfZNormals.at(i) << "\n";
-                    }
-                    // patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    // patch_faceIndex++;
-                }
-                // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                //  patch_faceIndex++;
-            }
-        }
-
-        indexA = patch_listOfFaces.at(j).get_aIndex();
-
-        if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexA) != listOfIndicies.end())
-        {
-            // v contains x
-            // j++;
-            //  std::cout << "indexB: " <<  indexB << "\n";
-            // goto label;
-        }
-        else
-        {
-            // std::cout << j << " B\n";
-            listOfIndicies.push_back(indexA);
-            Eigen::VectorXi resultVectorA = find_triangles(indexA, listOfFaces);
-            // std::cout << "result: \n"
-            //           << resultVector << "\n";
-
-            for (int i = 0; i < resultVectorA.rows(); i++)
-            {
-                // only want to adda  new patch if it hasnt already been included before
-                Face theFace = Face(0, listOfFaces.at(resultVectorA(i)).get_aIndex(), listOfFaces.at(resultVectorA(i)).get_bIndex(), listOfFaces.at(resultVectorA(i)).get_cIndex());
-                if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
-                {
-                    // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    // j++;
-                    // goto label;
-                    // break;
-                }
-                else
-                {
-                    // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
-                    // {
-                    //     goto done;
-                    //     // break;
-                    // }
-                    if (1) // listOfZNormals.at(i) < 0)
-                    {
-                        patch_listOfFaces.at(patch_faceIndex) = theFace;
-                        patch_faceIndex++;
-                        std::cout << "A\tZ normal: " << listOfZNormals.at(i) << "\n";
-                    }
-                    // patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    // patch_faceIndex++;
-                }
-                // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                //  patch_faceIndex++;
-            }
-        }
-
-        // std::cout << "patch_faceIndex: " << patch_faceIndex << "\n";
+        std::cout << "i: " << i << "\t" << patch_listOfFaces.at(i).get_faceEdges().at(0).get_index1() << "\n";
     }
 
-done:
+    // int patchSizeBefore = patch_listOfFaces.size();
+    int patchSizeBefore = patch_faceIndex;
 
-    //     // currently we now want to work with patch_list_of_faces not the normal one
-    //     // also as we havent removed triangles from this model, we havent generated the face matrix yet
-    //     // ideally we would have options that we could select, i.e. preprocess -Y/N , remove tri - Y/N, select patch - Y/N etc/
+    double previousZNormal = 0;
+
+    for (int i = 0; i < patch_faceIndex; i++) // patchSizeBefore
+    {
+        for (int j = 0; j < listOfFaces.size(); j++) // 500 for time being
+        {
+            if (compareEdges(listOfFaces.at(j).get_faceEdges(), patch_listOfFaces.at(i).get_faceEdges())) // returns true if they share an edge
+            {
+                Face theFace = Face(0, listOfFaces.at(j).get_aIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_cIndex());
+                if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
+                {
+                }
+                else
+                {
+                    // std::cout << "New face: " << j <<   " do we add?\n";
+                    // if (abs(listOfZNormals.at(i) - previousZNormal) > 0.2) // significant change has occured    //abs(listOfZNormals.at(i) - previousZNormal) > 0.2) //abs((abs(listOfZNormals.at(i)) - abs(previousZNormal))) > 0.2)
+                    // {
+                    //     std::cout << "############ big difference\n";
+                    // }
+                    // else
+                    // {
+                    patch_listOfFaces.at(patch_faceIndex) = theFace;
+                    patch_faceIndex++;
+
+                    std::cout << "i: " << i << "\tj: " << j << "\tAdding\n";
+                    std::cout << "\tZ normal: " << listOfZNormals.at(i) << "\n\n";
+                    previousZNormal = listOfZNormals.at(i);
+                    // }
+                }
+
+                // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(j).get_aIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_cIndex());
+                // patch_faceIndex++;
+                if (i == 100) // 92 is one over edge
+                {
+                    goto escape;
+                }
+            }
+        }
+        // previousZNormal = listOfZNormals.at(i);
+    }
+
+escape:
+
+    // maybe now that patch list of faces is 'in order' ?
+
+    // compareEdges(listOfFaces.at(i).get_faceEdges(), patch_listOfFaces.at(i).get_faceEdges())
+
+    // for (int i = 0; i < 100; i++)
+    // {
+    //     // std::cout << "Z normal: " << listOfZNormals.at(i) << "\n";
+    // }
+
+    //     int indexA, indexB, indexC;
+    //     int j = 0;
+
+    // label:
+    //     for (j; j < 200; j++)
+    //     {
+    //         // std::cout<<"j: " << j << "\n";
+
+    //         indexB = patch_listOfFaces.at(j).get_bIndex();
+
+    //         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexB) != listOfIndicies.end())
+    //         {
+    //             // v contains x
+    //             // j++;
+    //             //  std::cout << "indexB: " <<  indexB << "\n";
+    //             // goto label;
+    //         }
+    //         else
+    //         {
+    //             // std::cout << j << " B\n";
+    //             listOfIndicies.push_back(indexB);
+    //             Eigen::VectorXi resultVectorB = find_triangles(indexB, listOfFaces);
+    //             // std::cout << "result: \n"
+    //             //           << resultVector << "\n";
+
+    //             for (int i = 0; i < resultVectorB.rows(); i++)
+    //             {
+    //                 // only want to adda  new patch if it hasnt already been included before
+    //                 Face theFace = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                 if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
+    //                 {
+    //                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                     // j++;
+    //                     // goto label;
+    //                     // break;
+    //                 }
+    //                 else
+    //                 {
+    //                     // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
+    //                     // {
+    //                     //     goto done;
+    //                     //     // break;
+    //                     // }
+    //                     if (1) // listOfZNormals.at(i) < 0)
+    //                     {
+    //                         patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                         patch_faceIndex++;
+    //                         std::cout << "B\tZ normal: " << listOfZNormals.at(i) << "\n";
+    //                     }
+    //                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                     // patch_faceIndex++;
+    //                 }
+    //                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                 //  patch_faceIndex++;
+    //             }
+    //         }
+
+    //         indexC = patch_listOfFaces.at(j).get_cIndex();
+
+    //         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexC) != listOfIndicies.end())
+    //         {
+    //             // v contains x
+    //             // j++;
+    //             //  std::cout << "indexB: " <<  indexB << "\n";
+    //             // goto label;
+    //         }
+    //         else
+    //         {
+    //             // std::cout << j << " B\n";
+    //             listOfIndicies.push_back(indexC);
+    //             Eigen::VectorXi resultVectorC = find_triangles(indexC, listOfFaces);
+    //             // std::cout << "result: \n"
+    //             //           << resultVector << "\n";
+
+    //             for (int i = 0; i < resultVectorC.rows(); i++)
+    //             {
+    //                 // only want to adda  new patch if it hasnt already been included before
+    //                 Face theFace = Face(0, listOfFaces.at(resultVectorC(i)).get_aIndex(), listOfFaces.at(resultVectorC(i)).get_bIndex(), listOfFaces.at(resultVectorC(i)).get_cIndex());
+    //                 if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
+    //                 {
+    //                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                     // j++;
+    //                     // goto label;
+    //                     // break;
+    //                 }
+    //                 else
+    //                 {
+
+    //                     // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
+    //                     // {
+    //                     //     goto done;
+    //                     //     // break;
+    //                     // }
+    //                     if (1) // listOfZNormals.at(i) < 0)
+    //                     {
+    //                         patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                         patch_faceIndex++;
+    //                         std::cout << "C\tZ normal: " << listOfZNormals.at(i) << "\n";
+    //                     }
+    //                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                     // patch_faceIndex++;
+    //                 }
+    //                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                 //  patch_faceIndex++;
+    //             }
+    //         }
+
+    //         indexA = patch_listOfFaces.at(j).get_aIndex();
+
+    //         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexA) != listOfIndicies.end())
+    //         {
+    //             // v contains x
+    //             // j++;
+    //             //  std::cout << "indexB: " <<  indexB << "\n";
+    //             // goto label;
+    //         }
+    //         else
+    //         {
+    //             // std::cout << j << " B\n";
+    //             listOfIndicies.push_back(indexA);
+    //             Eigen::VectorXi resultVectorA = find_triangles(indexA, listOfFaces);
+    //             // std::cout << "result: \n"
+    //             //           << resultVector << "\n";
+
+    //             for (int i = 0; i < resultVectorA.rows(); i++)
+    //             {
+    //                 // only want to adda  new patch if it hasnt already been included before
+    //                 Face theFace = Face(0, listOfFaces.at(resultVectorA(i)).get_aIndex(), listOfFaces.at(resultVectorA(i)).get_bIndex(), listOfFaces.at(resultVectorA(i)).get_cIndex());
+    //                 if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
+    //                 {
+    //                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                     // j++;
+    //                     // goto label;
+    //                     // break;
+    //                 }
+    //                 else
+    //                 {
+    //                     // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
+    //                     // {
+    //                     //     goto done;
+    //                     //     // break;
+    //                     // }
+    //                     if (1) // listOfZNormals.at(i) < 0)
+    //                     {
+    //                         patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                         patch_faceIndex++;
+    //                         std::cout << "A\tZ normal: " << listOfZNormals.at(i) << "\n";
+    //                     }
+    //                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                     // patch_faceIndex++;
+    //                 }
+    //                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                 //  patch_faceIndex++;
+    //             }
+    //         }
+
+    //         // std::cout << "patch_faceIndex: " << patch_faceIndex << "\n";
+    //     }
+
+    // done:
+
+    //     //     // currently we now want to work with patch_list_of_faces not the normal one
+    //     //     // also as we havent removed triangles from this model, we havent generated the face matrix yet
+    //     //     // ideally we would have options that we could select, i.e. preprocess -Y/N , remove tri - Y/N, select patch - Y/N etc/
 
     patch_listOfFaces.resize(patch_faceIndex);
     //     // removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
@@ -919,4 +1010,18 @@ Eigen::VectorXi find_triangles(int indexWereAfter,
     }
     // indexVector.conservativeResize();
     return indexVector;
+}
+
+bool compareEdges(std::vector<Edge> &first, std::vector<Edge> &second)
+{
+    // return std::find_first_of(first.begin(), first.end(),
+    //                           second.begin(), second.end()) != first.end();
+
+    if (std::find(first.begin(), first.end(), second.at(0)) != first.end() ||
+        std::find(first.begin(), first.end(), second.at(1)) != first.end() ||
+        std::find(first.begin(), first.end(), second.at(2)) != first.end())
+    {
+        return true;
+    }
+    return false;
 }
