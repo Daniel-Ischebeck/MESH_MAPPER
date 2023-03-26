@@ -424,8 +424,8 @@ escape:
 
     pinnedVerticies(0) = boundaryVerticies(0);
     pinnedVerticies(1) = boundaryVerticies(boundaryVerticies.size() / 2);
-    // std::cout << "\n\nBoundary indexes\n"
-    //           << boundaryVerticies << std::endl;
+    std::cout << "\n\nBoundary indexes\n"
+              << boundaryVerticies << std::endl;
     std::cout << "\n\nPinned Verticies\n"
               << pinnedVerticies << std::endl;
 
