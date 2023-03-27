@@ -12,8 +12,8 @@ int main()
 
     std::vector<Point> listOfPoints;
     std::vector<Face> listOfFaces;
-    // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "../files/aircraft_wing.tri"; // part_sphere_high "../files/double_dome.tri"
+     std::string filePath = "../files/indexed_straight_dome.tri";
+    //std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
@@ -32,37 +32,37 @@ int main()
 
     Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
 
-    rotateModel(listOfPoints, pointMatrix, points, 'x'); // rotate the model so its orientated sensibly, y for double_dome, x for patch_antenna, x for wing
-    outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
-    // double dome
-    // we want to be able to select a seed point, and grow a patch from there
-    // obvious choice is start at 0,0,0
-    // currently my data strucutre means triangles dont know anything about their neighbours
+    // rotateModel(listOfPoints, pointMatrix, points, 'x'); // rotate the model so its orientated sensibly, y for double_dome, x for patch_antenna, x for wing
+    // outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
+    //  double dome
+    //  we want to be able to select a seed point, and grow a patch from there
+    //  obvious choice is start at 0,0,0
+    //  currently my data strucutre means triangles dont know anything about their neighbours
 
     // start at 0,0,0
     // add all triangles that contain that point
     // starting at first triangle added, choose one of its other points, add all triangles that contain that point
     // beware this is all doubles so comparison function needeed
-    std::vector<Point> patch_listOfPoints; // underscore just to check different
-    std::vector<Face> patch_listOfFaces;
+    // std::vector<Point> patch_listOfPoints; // underscore just to check different
+    // std::vector<Face> patch_listOfFaces;
 
-    std::vector<int> listOfIndicies(100000);
+    // std::vector<int> listOfIndicies(100000);
 
-    patch_listOfFaces.resize(100000); // guess, we can resize later
-    // patch_listOfPoints.resize(listOfPoints.size() / 2);
+    // patch_listOfFaces.resize(100000); // guess, we can resize later
+    // // patch_listOfPoints.resize(listOfPoints.size() / 2);
 
-    int patch_faceIndex = 0;
+    // int patch_faceIndex = 0;
 
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        // start point
-        if (listOfFaces.at(i).get_aIndex() == 3919 || listOfFaces.at(i).get_bIndex() == 3919 || listOfFaces.at(i).get_cIndex() == 3919) // 7,9,26,   index _ is good start point for patch_antenna, aircraft wing 3919?
-        {                                                                                                                               // here 0 is the index of the point (0,0,0) - for double dome
-            // std::cout << "Triangle: " << i << " contains 0,0,0\n";
-            patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
-            patch_faceIndex++;
-        }
-    }
+    // for (int i = 0; i < listOfFaces.size(); i++)
+    // {
+    //     // start point
+    //     if (listOfFaces.at(i).get_aIndex() == 3919 || listOfFaces.at(i).get_bIndex() == 3919 || listOfFaces.at(i).get_cIndex() == 3919) // 7,9,26,   index _ is good start point for patch_antenna, aircraft wing 3919?
+    //     {                                                                                                                               // here 0 is the index of the point (0,0,0) - for double dome
+    //         // std::cout << "Triangle: " << i << " contains 0,0,0\n";
+    //         patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
+    //         patch_faceIndex++;
+    //     }
+    // }
 
     // patch_antenna start point around (30.1,41.6, -36.5) //closer look (30.2,44, -36.5)
 
@@ -97,112 +97,214 @@ int main()
     // Ay = p2.y-p1.y   = bindex.y-aindex.y         //Bx = cindex.x-aindex.x
     // may also need other normals, not just z to account for  cut ends of wing.
 
-    std::vector<double> listOfZNormals(listOfFaces.size()); // there will be as many normals as faces
+    // std::vector<double> listOfZNormals(listOfFaces.size()); // there will be as many normals as faces
 
-    for (int i = 0; i < listOfZNormals.size(); i++)
-    {
-        listOfZNormals.at(i) = ((listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() - listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()) *
-                                (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() - listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y())) -
-                               ((listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() - listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()) *
-                                (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() - listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()));
-    }
+    // for (int i = 0; i < listOfZNormals.size(); i++)
+    // {
+    //     listOfZNormals.at(i) = ((listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() - listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()) *
+    //                             (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() - listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y())) -
+    //                            ((listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() - listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()) *
+    //                             (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() - listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()));
+    // }
+
+    // ##############################
+    // Eigen::Vector3d X, n, Y;
+
+    // Eigen::Vector3d Xa, Xb, Xc;
+    // Eigen::Vector3d Ya, Yb, Yc;
+
+    // testing on triangle 0
+
+    // Eigen::Vector3d temp((listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_x()),
+    //                      (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_y()),
+    //                      (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_z()));
+
+    // X = temp / temp.norm();
+
+    // std::cout << "X\n"
+    //           << X << "\n";
+
+    // temp << (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_x()),
+    //     (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_y()),
+    //     (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_z());
+
+    // n = X.cross(temp) / ((X.cross(temp)).norm());
+
+    // Y = n.cross(X);
+
+    // std::cout << "Y\n"
+    //           << Y << "\n";
+
+    // std::cout << "n\n"
+    //           << n << "\n";
+
+    // std::cout << "n.z: " << n.z() << "\n";
+
+    // std::cout << X.dot(Y) << " " << Y.dot(n) << " " << n.dot(X) << "\n";
+
+    // double magX, magY;
+    // magX = X.norm();
+    // magY = Y.norm();
+
+    // std::cout << "Magnitude of X: " << magX << "\n";
+    // std::cout << "Magnitude of Y: " << magY << "\n";
+
+    // double dot, det;
+    // double angle_between_AB_AC;
+    // // dot = x1*x2 + y1*y2 + z1*z2
+    // // det = x1*y2*zn + x2*yn*z1 + xn*y1*z2 - z1*y2*xn - z2*yn*x1 - zn*y1*x2
+    // // angle = atan2(det, dot)
+
+    // Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
+
+    // vAB << (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_x()),
+    //     (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_y()),
+    //     (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_z());
+
+    // vAC << (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_x()),
+    //     (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_y()),
+    //     (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_z());
+
+    // // normalise
+    // double vAB_mag = sqrt(vAB.x() * vAB.x() + vAB.y() * vAB.y() + vAB.z() * vAB.z());
+    // vAB_norm << vAB.x() / vAB_mag, vAB.y() / vAB_mag, vAB.z() / vAB_mag;
+
+    // double vAC_mag = sqrt(vAC.x() * vAC.x() + vAC.y() * vAC.y() + vAC.z() * vAC.z());
+    // vAC_norm << vAC.x() / vAC_mag, vAC.y() / vAC_mag, vAC.z() / vAC_mag;
+
+    // double dotProduct = vAB_norm.x() * vAC_norm.x() + vAB_norm.y() * vAC_norm.y() + vAB_norm.z() * vAC_norm.z();
+
+    // angle_between_AB_AC = acos(dotProduct);
+
+    // std::cout << "vAB_norm\n"
+    //           << vAB_norm << "\n";
+
+    // std::cout << "vAC_norm\n"
+    //           << vAC_norm << "\n";
+
+    // std::cout << "Angle (radians): " << angle_between_AB_AC << "\n"
+    //           << "Angle (degrees): " << angle_between_AB_AC * (180 / 3.14159) << "\n";
+
+    // // Now to determine the values of the points in our new coordiante system
+    // // A is at the origin
+    // // B will be some scaling of our basis vector X
+    // // C will have components of both basis vectors X and Y.
+
+    // double Xa, Xb, Xc;
+    // double Ya, Yb, Yc;
+
+    // Xa = 0; // A is at the origin
+    // Ya = 0;
+
+    // Xb = vAB_norm.norm() / magX;
+    // Yb = 0;
+
+    // Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
+    // Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
+
+    // std::cout << "Results:\n"
+    //           << "Xa: " << Xa << "\tYa: " << Ya << "\n"
+    //           << "Xb: " << Xb << "\tYb: " << Yb << "\n"
+    //           << "Xc: " << Xc << "\tYc: " << Yc << "\n";
+
+    // #############
 
     // edgesssss
     // get the edge, the compare the two points to the points of another edge.   if theEdge == theOtherEdge
 
-    std::cout << "Tri 23, edge index 1: " << listOfFaces.at(23).get_faceEdges().at(0).get_index1() << "\n";
-    if (listOfFaces.at(23).get_faceEdges().at(0) == listOfFaces.at(6977).get_faceEdges().at(0))
-    {
-        std::cout << "Tri 23 and 6977 share an edge\n";
-    }
+    // std::cout << "Tri 23, edge index 1: " << listOfFaces.at(23).get_faceEdges().at(0).get_index1() << "\n";
+    // if (listOfFaces.at(23).get_faceEdges().at(0) == listOfFaces.at(6977).get_faceEdges().at(0))
+    // {
+    //     std::cout << "Tri 23 and 6977 share an edge\n";
+    // }
 
-    if (compareEdges(listOfFaces.at(23).get_faceEdges(), listOfFaces.at(6977).get_faceEdges()))
-    {
-        std::cout << "##Tri 23 and 6977 share an edge\n";
-    }
+    // if (compareEdges(listOfFaces.at(23).get_faceEdges(), listOfFaces.at(6977).get_faceEdges()))
+    // {
+    //     std::cout << "##Tri 23 and 6977 share an edge\n";
+    // }
     // std::vector<std::vector<Edge>> listOfEdges;
 
     // can we determine boundary edges and then use these as stop points
+// /###############################map faces needed if no remove triangles
+    // for (int i = 0; i < listOfFaces.size(); i++)
+    // {
+    //     faces[i][0] = listOfFaces.at(i).get_aIndex();
+    //     faces[i][1] = listOfFaces.at(i).get_bIndex();
+    //     faces[i][2] = listOfFaces.at(i).get_cIndex();
+    // }
+    // faces.resize(listOfFaces.size(), std::vector<int>(3));
+    // faceMatrix.resize(listOfFaces.size(), 3);
 
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        faces[i][0] = listOfFaces.at(i).get_aIndex();
-        faces[i][1] = listOfFaces.at(i).get_bIndex();
-        faces[i][2] = listOfFaces.at(i).get_cIndex();
-    }
-    faces.resize(listOfFaces.size(), std::vector<int>(3));
-    faceMatrix.resize(listOfFaces.size(), 3);
+    // for (int i = 0; i < listOfFaces.size(); i++)
+    // {
+    //     faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+    // }
 
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
-    }
+    // // std::cout << faceMatrix << "\n\n";
 
-    // std::cout << faceMatrix << "\n\n";
+    // Eigen::VectorXi boundaryModel, boundaryFacets;
 
-    Eigen::VectorXi boundaryModel, boundaryFacets;
+    // igl::boundary_loop(faceMatrix, boundaryModel);
+    // // igl::boundary_facets(faceMatrix, boundaryFacets);
 
-    igl::boundary_loop(faceMatrix, boundaryModel);
-    // igl::boundary_facets(faceMatrix, boundaryFacets);
-
-    std::cout << "\n\nBoundary Model\n"
-              << boundaryModel.size() << "\n"
-              << boundaryModel << std::endl;
+    // std::cout << "\n\nBoundary Model\n"
+    //           << boundaryModel.size() << "\n"
+    //           << boundaryModel << std::endl;
 
     // std::cout << "\n\nBoundary Model\n"
     //           << boundaryFacets.size() << "\n"
     //           << boundaryFacets << std::endl;
 
-    for (int i = 0; i < patch_faceIndex; i++)
-    {
-        std::cout << "i: " << i << "\t" << patch_listOfFaces.at(i).get_faceEdges().at(0).get_index1() << "\n";
-    }
+    // for (int i = 0; i < patch_faceIndex; i++)
+    // {
+    //     // std::cout << "i: " << i << "\t" << patch_listOfFaces.at(i).get_faceEdges().at(0).get_index1() << "\n";
+    // }
 
-    // int patchSizeBefore = patch_listOfFaces.size();
-    int patchSizeBefore = patch_faceIndex;
+    // // int patchSizeBefore = patch_listOfFaces.size();
+    // int patchSizeBefore = patch_faceIndex;
 
-    double previousZNormal = 0;
+    // double previousZNormal = 0;
 
-    for (int i = 0; i < patch_faceIndex; i++) // patchSizeBefore
-    {
-        for (int j = 0; j < listOfFaces.size(); j++) // 500 for time being
-        {
-            if (compareEdges(listOfFaces.at(j).get_faceEdges(), patch_listOfFaces.at(i).get_faceEdges())) // returns true if they share an edge
-            {
-                Face theFace = Face(0, listOfFaces.at(j).get_aIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_cIndex());
-                if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
-                {
-                }
-                else
-                {
-                    // std::cout << "New face: " << j <<   " do we add?\n";
-                    // if (abs(listOfZNormals.at(i) - previousZNormal) > 0.2) // significant change has occured    //abs(listOfZNormals.at(i) - previousZNormal) > 0.2) //abs((abs(listOfZNormals.at(i)) - abs(previousZNormal))) > 0.2)
-                    // {
-                    //     std::cout << "############ big difference\n";
-                    // }
-                    // else
-                    // {
-                    patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    patch_faceIndex++;
+    // for (int i = 0; i < patch_faceIndex; i++) // patchSizeBefore
+    // {
+    //     for (int j = 0; j < listOfFaces.size(); j++) // 500 for time being
+    //     {
+    //         if (compareEdges(listOfFaces.at(j).get_faceEdges(), patch_listOfFaces.at(i).get_faceEdges())) // returns true if they share an edge
+    //         {
+    //             Face theFace = Face(0, listOfFaces.at(j).get_aIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_cIndex());
+    //             if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
+    //             {
+    //             }
+    //             else
+    //             {
+    //                 // std::cout << "New face: " << j <<   " do we add?\n";
+    //                 // if (abs(listOfZNormals.at(i) - previousZNormal) > 0.2) // significant change has occured    //abs(listOfZNormals.at(i) - previousZNormal) > 0.2) //abs((abs(listOfZNormals.at(i)) - abs(previousZNormal))) > 0.2)
+    //                 // {
+    //                 //     std::cout << "############ big difference\n";
+    //                 // }
+    //                 // else
+    //                 // {
+    //                 patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                 patch_faceIndex++;
 
-                    std::cout << "i: " << i << "\tj: " << j << "\tAdding\n";
-                    std::cout << "\tZ normal: " << listOfZNormals.at(i) << "\n\n";
-                    previousZNormal = listOfZNormals.at(i);
-                    // }
-                }
+    //                 // std::cout << "i: " << i << "\tj: " << j << "\tAdding\n";
+    //                 // std::cout << "\tZ normal: " << listOfZNormals.at(i) << "\n\n";
+    //                 previousZNormal = listOfZNormals.at(i);
+    //                 // }
+    //             }
 
-                // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(j).get_aIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_cIndex());
-                // patch_faceIndex++;
-                if (i == 100) // 92 is one over edge
-                {
-                    goto escape;
-                }
-            }
-        }
-        // previousZNormal = listOfZNormals.at(i);
-    }
+    //             // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(j).get_aIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_cIndex());
+    //             // patch_faceIndex++;
+    //             if (i == 100) // 92 is one over edge
+    //             {
+    //                 goto escape;
+    //             }
+    //         }
+    //     }
+    //     // previousZNormal = listOfZNormals.at(i);
+    // }
 
-escape:
+    // escape:
 
     // maybe now that patch list of faces is 'in order' ?
 
@@ -378,26 +480,15 @@ escape:
     //     //     // also as we havent removed triangles from this model, we havent generated the face matrix yet
     //     //     // ideally we would have options that we could select, i.e. preprocess -Y/N , remove tri - Y/N, select patch - Y/N etc/
 
-    patch_listOfFaces.resize(patch_faceIndex);
-    //     // removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
-
-    outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
-
-    listOfFaces.swap(patch_listOfFaces);
-
-    // for(int i=0; i<10; i++)  //testing swap
-    // {
-    //     std::cout << "i: " << i << " lof: " << listOfFaces.at(i).get_bIndex() << "\n";
-    // }
-
-    // #################prep face matrix after patch selection
+    // patch_listOfFaces.resize(patch_faceIndex);
+    //removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
+    // /###############################map faces needed if no remove triangles
     for (int i = 0; i < listOfFaces.size(); i++)
     {
         faces[i][0] = listOfFaces.at(i).get_aIndex();
         faces[i][1] = listOfFaces.at(i).get_bIndex();
         faces[i][2] = listOfFaces.at(i).get_cIndex();
     }
-
     faces.resize(listOfFaces.size(), std::vector<int>(3));
     faceMatrix.resize(listOfFaces.size(), 3);
 
@@ -405,10 +496,35 @@ escape:
     {
         faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
     }
+    outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
+    // outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
+
+    // listOfFaces.swap(patch_listOfFaces);
+
+    // // for(int i=0; i<10; i++)  //testing swap
+    // // {
+    // //     std::cout << "i: " << i << " lof: " << listOfFaces.at(i).get_bIndex() << "\n";
+    // // }
+
+    // // #################prep face matrix after patch selection
+    // for (int i = 0; i < listOfFaces.size(); i++)
+    // {
+    //     faces[i][0] = listOfFaces.at(i).get_aIndex();
+    //     faces[i][1] = listOfFaces.at(i).get_bIndex();
+    //     faces[i][2] = listOfFaces.at(i).get_cIndex();
+    // }
+
+    // faces.resize(listOfFaces.size(), std::vector<int>(3));
+    // faceMatrix.resize(listOfFaces.size(), 3);
+
+    // for (int i = 0; i < listOfFaces.size(); i++)
+    // {
+    //     faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+    // }
     // ########################
 
     // std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\n\n";
-
+    std::cout << "1\n";
     std::vector<double> listOfAreas(listOfFaces.size());
 
     if (!calcTriangleAreas(listOfPoints, listOfFaces, listOfAreas))
@@ -418,7 +534,7 @@ escape:
     }
 
     // outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
-
+    std::cout << "1\n";
     Eigen::VectorXi boundaryVerticies, pinnedVerticies(2, 1);
     igl::boundary_loop(faceMatrix, boundaryVerticies);
 
@@ -452,12 +568,12 @@ escape:
     // A_sparseMatrixfile.open("A_sparse.txt");
     // A_sparseMatrixfile << Eigen::MatrixXd(A);
 
-    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
+    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    // Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
 
     std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
-    // solver.compute(A);
-    lscg.compute(A);
+    solver.compute(A);
+    // lscg.compute(A);
     std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
     std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
 
@@ -468,8 +584,8 @@ escape:
     // }
 
     std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
-    // solution = solver.solve(RHS);
-    solution = lscg.solve(RHS);
+    solution = solver.solve(RHS);
+    // solution = lscg.solve(RHS);
     std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
     // if (solver.info() != Eigen::Success) //should this be solution###########################
     // {
@@ -477,8 +593,8 @@ escape:
     //     return -1;
     // }
 
-    std::cout << "#iterations:     " << lscg.iterations() << std::endl;
-    std::cout << "estimated error: " << lscg.error() << std::endl;
+    // std::cout << "#iterations:     " << lscg.iterations() << std::endl;
+    // std::cout << "estimated error: " << lscg.error() << std::endl;
 
     // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
     //           << solution << std::endl;
@@ -607,7 +723,7 @@ bool removeTriangles(std::vector<Point> &listOfPoints,
 
         // copy elements that are NOT part of the base into a new list which will now use
         // if (!((a == b) && (b == c)))    //comparing doubles can be problematic, use function
-        if (!(compare_double(a, b, epsilon) && compare_double(b, c, epsilon) && a < -2.14 && b < -2.14 && c < -2.14))
+        if (!(compare_double(a, b, epsilon) && compare_double(b, c, epsilon))) //&& a < -2.14 && b < -2.14 && c < -2.14))
         {
             // std::cout << "Triangle: " << i << " is not on x-y plane\n";
             //   listOfFaces.erase(listOfFaces.begin() + i);
@@ -685,44 +801,203 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 // real part x3-x2
                 // M(i, j) = 1;
                 M.insert(i, j) = 1; // for sparse we need .insert()
-                A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() -
-                                      listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) /
-                                     sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
-                                                                   // because dividing by sqrt of negative, should this be in complex part?
+                                    // A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() -
+                                    //                       listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) /
+                                    //                      sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
+                                    //                                                    // because dividing by sqrt of negative, should this be in complex part?
 
                 // complex part y3-y2
-                A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() -
-                                      listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) /
-                                     sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
-                                                                   // because dividing by sqrt of negative, should this be in complex part?
+                // A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() -
+                //                       listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) /
+                //                      sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
+                //                                                 // because dividing by sqrt of negative, should this be in complex part?
+                double angle_between_AB_AC;
+
+                Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
+
+                vAB << (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                    (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                    (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z());
+
+                vAC << (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z());
+
+                // normalise
+                double vAB_mag = sqrt(vAB.x() * vAB.x() + vAB.y() * vAB.y() + vAB.z() * vAB.z());
+                vAB_norm << vAB.x() / vAB_mag, vAB.y() / vAB_mag, vAB.z() / vAB_mag;
+
+                double vAC_mag = sqrt(vAC.x() * vAC.x() + vAC.y() * vAC.y() + vAC.z() * vAC.z());
+                vAC_norm << vAC.x() / vAC_mag, vAC.y() / vAC_mag, vAC.z() / vAC_mag;
+
+                double dotProduct = vAB_norm.x() * vAC_norm.x() + vAB_norm.y() * vAC_norm.y() + vAB_norm.z() * vAC_norm.z();
+
+                angle_between_AB_AC = acos(dotProduct);
+
+                // std::cout << "Angle (radians): " << angle_between_AB_AC << "\n"
+                //           << "Angle (degrees): " << angle_between_AB_AC * (180 / 3.14159) << "\n";
+
+                // Now to determine the values of the points in our new coordiante system
+                // A is at the origin
+                // B will be some scaling of our basis vector X
+                // C will have components of both basis vectors X and Y.
+
+                double Xa, Xb, Xc;
+                double Ya, Yb, Yc;
+
+                Xa = 0; // A is at the origin
+                Ya = 0;
+
+                Xb = 1; // vAB_norm.norm()/magX; //1; // vAB_norm.norm()/magX;
+                Yb = 0;
+
+                Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
+                Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
+
+                // std::cout << "Results:\n"
+                //           << "Xa: " << Xa << "\tYa: " << Ya << "\n"
+                //           << "Xb: " << Xb << "\tYb: " << Yb << "\n"
+                //           << "Xc: " << Xc << "\tYc: " << Yc << "\n";
+
+                // real part Xc-Xb   - note these are from wight eauation not top graident in triangle equation
+                A_Mf1.insert(i, j) = (Xc - Xb) / sqrt(abs(listOfAreas.at(i)));
+
+                // complex part yc-yb
+                A_Mf2.insert(i, j) = (Yc - Yb) / sqrt(abs(listOfAreas.at(i)));
             }
 
             if (listOfFaces.at(i).get_bIndex() == j) // Weight 2
             {
-                // real part x1-x2
+                // real part x1-x3
                 M.insert(i, j) = 2;
-                A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() -
-                                      listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) /
-                                     sqrt(abs(listOfAreas.at(i)));
+                // A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() -
+                //                       listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) /
+                //                      sqrt(abs(listOfAreas.at(i)));
 
-                // complex part y1-y3
-                A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
-                                      listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) /
-                                     sqrt(abs(listOfAreas.at(i)));
+                // // complex part y1-y3
+                // A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
+                //                       listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) /
+                //                      sqrt(abs(listOfAreas.at(i)));
+                double angle_between_AB_AC;
+
+                Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
+
+                vAB << (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                    (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                    (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z());
+
+                vAC << (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z());
+
+                // normalise
+                double vAB_mag = sqrt(vAB.x() * vAB.x() + vAB.y() * vAB.y() + vAB.z() * vAB.z());
+                vAB_norm << vAB.x() / vAB_mag, vAB.y() / vAB_mag, vAB.z() / vAB_mag;
+
+                double vAC_mag = sqrt(vAC.x() * vAC.x() + vAC.y() * vAC.y() + vAC.z() * vAC.z());
+                vAC_norm << vAC.x() / vAC_mag, vAC.y() / vAC_mag, vAC.z() / vAC_mag;
+
+                double dotProduct = vAB_norm.x() * vAC_norm.x() + vAB_norm.y() * vAC_norm.y() + vAB_norm.z() * vAC_norm.z();
+
+                angle_between_AB_AC = acos(dotProduct);
+
+                // std::cout << "Angle (radians): " << angle_between_AB_AC << "\n"
+                //           << "Angle (degrees): " << angle_between_AB_AC * (180 / 3.14159) << "\n";
+
+                // Now to determine the values of the points in our new coordiante system
+                // A is at the origin
+                // B will be some scaling of our basis vector X
+                // C will have components of both basis vectors X and Y.
+
+                double Xa, Xb, Xc;
+                double Ya, Yb, Yc;
+
+                Xa = 0; // A is at the origin
+                Ya = 0;
+
+                Xb = 1; // vAB_norm.norm()/magX;    //1
+                Yb = 0;
+
+                Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
+                Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
+
+                // std::cout << "Results:\n"
+                //           << "Xa: " << Xa << "\tYa: " << Ya << "\n"
+                //           << "Xb: " << Xb << "\tYb: " << Yb << "\n"
+                //           << "Xc: " << Xc << "\tYc: " << Yc << "\n";
+
+                // real part Xc-Xb   - note these are from wight eauation not top graident in triangle equation
+                A_Mf1.insert(i, j) = (Xa - Xc) / sqrt(abs(listOfAreas.at(i)));
+
+                // complex part yc-yb
+                A_Mf2.insert(i, j) = (Ya - Yc) / sqrt(abs(listOfAreas.at(i)));
             }
 
             if (listOfFaces.at(i).get_cIndex() == j) // Weight 3
             {
                 // real part x2-x1
                 M.insert(i, j) = 3;
-                A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() -
-                                      listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()) /
-                                     sqrt(abs(listOfAreas.at(i)));
+                // A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() -
+                //                       listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()) /
+                //                      sqrt(abs(listOfAreas.at(i)));
 
-                // complex part y2-y1
-                A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
-                                      listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()) /
-                                     sqrt(abs(listOfAreas.at(i)));
+                // // complex part y2-y1
+                // A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
+                //                       listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()) /
+                //                      sqrt(abs(listOfAreas.at(i)));
+                double angle_between_AB_AC;
+
+                Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
+
+                vAB << (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                    (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                    (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z());
+
+                vAC << (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z());
+
+                // normalise
+                double vAB_mag = sqrt(vAB.x() * vAB.x() + vAB.y() * vAB.y() + vAB.z() * vAB.z());
+                vAB_norm << vAB.x() / vAB_mag, vAB.y() / vAB_mag, vAB.z() / vAB_mag;
+
+                double vAC_mag = sqrt(vAC.x() * vAC.x() + vAC.y() * vAC.y() + vAC.z() * vAC.z());
+                vAC_norm << vAC.x() / vAC_mag, vAC.y() / vAC_mag, vAC.z() / vAC_mag;
+
+                double dotProduct = vAB_norm.x() * vAC_norm.x() + vAB_norm.y() * vAC_norm.y() + vAB_norm.z() * vAC_norm.z();
+
+                angle_between_AB_AC = acos(dotProduct);
+
+                // std::cout << "Angle (radians): " << angle_between_AB_AC << "\n"
+                //           << "Angle (degrees): " << angle_between_AB_AC * (180 / 3.14159) << "\n";
+
+                // Now to determine the values of the points in our new coordiante system
+                // A is at the origin
+                // B will be some scaling of our basis vector X
+                // C will have components of both basis vectors X and Y.
+
+                double Xa, Xb, Xc;
+                double Ya, Yb, Yc;
+
+                Xa = 0; // A is at the origin
+                Ya = 0;
+
+                Xb = 1; // vAB_norm.norm()/magX;
+                Yb = 0;
+
+                Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
+                Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
+
+                // std::cout << "Results:\n"
+                //           << "Xa: " << Xa << "\tYa: " << Ya << "\n"
+                //           << "Xb: " << Xb << "\tYb: " << Yb << "\n"
+                //           << "Xc: " << Xc << "\tYc: " << Yc << "\n";
+
+                // real part Xc-Xb   - note these are from wight eauation not top graident in triangle equation
+                A_Mf1.insert(i, j) = (Xb - Xa) / sqrt(abs(listOfAreas.at(i)));
+
+                // complex part yc-yb
+                A_Mf2.insert(i, j) = (Yb - Ya) / sqrt(abs(listOfAreas.at(i)));
             }
         }
     }
