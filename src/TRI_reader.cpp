@@ -12,8 +12,9 @@ int main()
 
     std::vector<Point> listOfPoints;
     std::vector<Face> listOfFaces;
-     std::string filePath = "../files/indexed_straight_dome.tri";
-    //std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
+    // std::string filePath = "../files/indexed_straight_dome.tri";
+    std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
+    // std::string filePath = "partLow.tri";
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
@@ -32,8 +33,11 @@ int main()
 
     Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
 
+    outputTRIfile(listOfPoints, listOfFaces, "pre.tri");
+
     // rotateModel(listOfPoints, pointMatrix, points, 'x'); // rotate the model so its orientated sensibly, y for double_dome, x for patch_antenna, x for wing
     // outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
+
     //  double dome
     //  we want to be able to select a seed point, and grow a patch from there
     //  obvious choice is start at 0,0,0
@@ -56,7 +60,7 @@ int main()
     // for (int i = 0; i < listOfFaces.size(); i++)
     // {
     //     // start point
-    //     if (listOfFaces.at(i).get_aIndex() == 3919 || listOfFaces.at(i).get_bIndex() == 3919 || listOfFaces.at(i).get_cIndex() == 3919) // 7,9,26,   index _ is good start point for patch_antenna, aircraft wing 3919?
+    //     if (listOfFaces.at(i).get_aIndex() == 0 || listOfFaces.at(i).get_bIndex() == 0 || listOfFaces.at(i).get_cIndex() == 0) // 7,9,26,   index _ is good start point for patch_antenna, aircraft wing 0?
     //     {                                                                                                                               // here 0 is the index of the point (0,0,0) - for double dome
     //         // std::cout << "Triangle: " << i << " contains 0,0,0\n";
     //         patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
@@ -108,104 +112,104 @@ int main()
     // }
 
     // ##############################
-    // Eigen::Vector3d X, n, Y;
 
-    // Eigen::Vector3d Xa, Xb, Xc;
-    // Eigen::Vector3d Ya, Yb, Yc;
+    ////Eigen::Vector3d Xa, Xb, Xc;
+    ////Eigen::Vector3d Ya, Yb, Yc;
 
     // testing on triangle 0
+    Eigen::Vector3d X, n, Y;
+    Eigen::Vector3d temp((listOfPoints.at(listOfFaces.at(3).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_x()),
+                         (listOfPoints.at(listOfFaces.at(3).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_y()),
+                         (listOfPoints.at(listOfFaces.at(3).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_z()));
 
-    // Eigen::Vector3d temp((listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_x()),
-    //                      (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_y()),
-    //                      (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_z()));
+    X = temp / temp.norm();
 
-    // X = temp / temp.norm();
+    std::cout << "X\n"
+              << X << "\n";
 
-    // std::cout << "X\n"
-    //           << X << "\n";
+    temp << (listOfPoints.at(listOfFaces.at(3).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_x()),
+        (listOfPoints.at(listOfFaces.at(3).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_y()),
+        (listOfPoints.at(listOfFaces.at(3).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_z());
 
-    // temp << (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_x()),
-    //     (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_y()),
-    //     (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_z());
+    n = X.cross(temp) / ((X.cross(temp)).norm());
 
-    // n = X.cross(temp) / ((X.cross(temp)).norm());
+    Y = n.cross(X);
 
-    // Y = n.cross(X);
+    std::cout << "Y\n"
+              << Y << "\n";
 
-    // std::cout << "Y\n"
-    //           << Y << "\n";
+    std::cout << "n\n"
+              << n << "\n";
 
-    // std::cout << "n\n"
-    //           << n << "\n";
+    std::cout << "n.z: " << n.z() << "\n";
 
-    // std::cout << "n.z: " << n.z() << "\n";
+    std::cout << X.dot(Y) << " " << Y.dot(n) << " " << n.dot(X) << "\n";
 
-    // std::cout << X.dot(Y) << " " << Y.dot(n) << " " << n.dot(X) << "\n";
+    double magX, magY;
+    magX = X.norm();
+    magY = Y.norm();
 
-    // double magX, magY;
-    // magX = X.norm();
-    // magY = Y.norm();
+    std::cout << "Magnitude of X: " << magX << "\n";
+    std::cout << "Magnitude of Y: " << magY << "\n";
 
-    // std::cout << "Magnitude of X: " << magX << "\n";
-    // std::cout << "Magnitude of Y: " << magY << "\n";
+    double dot, det;
+    double angle_between_AB_AC;
+    // dot = x1*x2 + y1*y2 + z1*z2
+    // det = x1*y2*zn + x2*yn*z1 + xn*y1*z2 - z1*y2*xn - z2*yn*x1 - zn*y1*x2
+    // angle = atan2(det, dot)
 
-    // double dot, det;
-    // double angle_between_AB_AC;
-    // // dot = x1*x2 + y1*y2 + z1*z2
-    // // det = x1*y2*zn + x2*yn*z1 + xn*y1*z2 - z1*y2*xn - z2*yn*x1 - zn*y1*x2
-    // // angle = atan2(det, dot)
+    Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
 
-    // Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
+    vAB << (listOfPoints.at(listOfFaces.at(3).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_x()),
+        (listOfPoints.at(listOfFaces.at(3).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_y()),
+        (listOfPoints.at(listOfFaces.at(3).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_z());
 
-    // vAB << (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_x()),
-    //     (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_y()),
-    //     (listOfPoints.at(listOfFaces.at(3919).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_z());
+    vAC << (listOfPoints.at(listOfFaces.at(3).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_x()),
+        (listOfPoints.at(listOfFaces.at(3).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_y()),
+        (listOfPoints.at(listOfFaces.at(3).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3).get_aIndex()).get_z());
 
-    // vAC << (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_x()),
-    //     (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_y()),
-    //     (listOfPoints.at(listOfFaces.at(3919).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(3919).get_aIndex()).get_z());
+    // normalise
+    double vAB_mag = sqrt(vAB.x() * vAB.x() + vAB.y() * vAB.y() + vAB.z() * vAB.z());
+    vAB_norm << vAB.x() / vAB_mag, vAB.y() / vAB_mag, vAB.z() / vAB_mag;
 
-    // // normalise
-    // double vAB_mag = sqrt(vAB.x() * vAB.x() + vAB.y() * vAB.y() + vAB.z() * vAB.z());
-    // vAB_norm << vAB.x() / vAB_mag, vAB.y() / vAB_mag, vAB.z() / vAB_mag;
+    double vAC_mag = sqrt(vAC.x() * vAC.x() + vAC.y() * vAC.y() + vAC.z() * vAC.z());
+    vAC_norm << vAC.x() / vAC_mag, vAC.y() / vAC_mag, vAC.z() / vAC_mag;
 
-    // double vAC_mag = sqrt(vAC.x() * vAC.x() + vAC.y() * vAC.y() + vAC.z() * vAC.z());
-    // vAC_norm << vAC.x() / vAC_mag, vAC.y() / vAC_mag, vAC.z() / vAC_mag;
+    double dotProduct = vAB_norm.x() * vAC_norm.x() + vAB_norm.y() * vAC_norm.y() + vAB_norm.z() * vAC_norm.z();
 
-    // double dotProduct = vAB_norm.x() * vAC_norm.x() + vAB_norm.y() * vAC_norm.y() + vAB_norm.z() * vAC_norm.z();
+    angle_between_AB_AC = acos(dotProduct);
 
-    // angle_between_AB_AC = acos(dotProduct);
+    std::cout << "test ab norm " << vAB.norm() << "\n";
+    std::cout << "vAB_norm\n"
+              << vAB_norm << "\n";
 
-    // std::cout << "vAB_norm\n"
-    //           << vAB_norm << "\n";
+    std::cout << "vAC_norm\n"
+              << vAC_norm << "\n";
 
-    // std::cout << "vAC_norm\n"
-    //           << vAC_norm << "\n";
+    std::cout << "Angle (radians): " << angle_between_AB_AC << "\n"
+              << "Angle (degrees): " << angle_between_AB_AC * (180 / 3.14159) << "\n";
 
-    // std::cout << "Angle (radians): " << angle_between_AB_AC << "\n"
-    //           << "Angle (degrees): " << angle_between_AB_AC * (180 / 3.14159) << "\n";
+    // Now to determine the values of the points in our new coordiante system
+    // A is at the origin
+    // B will be some scaling of our basis vector X
+    // C will have components of both basis vectors X and Y.
 
-    // // Now to determine the values of the points in our new coordiante system
-    // // A is at the origin
-    // // B will be some scaling of our basis vector X
-    // // C will have components of both basis vectors X and Y.
+    double Xa, Xb, Xc;
+    double Ya, Yb, Yc;
 
-    // double Xa, Xb, Xc;
-    // double Ya, Yb, Yc;
+    Xa = 0; // A is at the origin
+    Ya = 0;
 
-    // Xa = 0; // A is at the origin
-    // Ya = 0;
+    Xb = vAB.norm(); // vAB_norm.norm() / magX;
+    Yb = 0;
 
-    // Xb = vAB_norm.norm() / magX;
-    // Yb = 0;
+    Xc = vAC.norm() * cos(angle_between_AB_AC); // vAC_mag   vAC_norm.norm()
+    Yc = vAC.norm() * sin(angle_between_AB_AC); // vAC_norm.norm()
 
-    // Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
-    // Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
-
-    // std::cout << "Results:\n"
-    //           << "Xa: " << Xa << "\tYa: " << Ya << "\n"
-    //           << "Xb: " << Xb << "\tYb: " << Yb << "\n"
-    //           << "Xc: " << Xc << "\tYc: " << Yc << "\n";
+    std::cout << "Results:\n"
+              << "Xa: " << Xa << "\tYa: " << Ya << "\n"
+              << "Xb: " << Xb << "\tYb: " << Yb << "\n"
+              << "Xc: " << Xc << "\tYc: " << Yc << "\n";
 
     // #############
 
@@ -225,7 +229,7 @@ int main()
     // std::vector<std::vector<Edge>> listOfEdges;
 
     // can we determine boundary edges and then use these as stop points
-// /###############################map faces needed if no remove triangles
+    // /###############################map faces needed if no remove triangles
     // for (int i = 0; i < listOfFaces.size(); i++)
     // {
     //     faces[i][0] = listOfFaces.at(i).get_aIndex();
@@ -481,22 +485,82 @@ int main()
     //     //     // ideally we would have options that we could select, i.e. preprocess -Y/N , remove tri - Y/N, select patch - Y/N etc/
 
     // patch_listOfFaces.resize(patch_faceIndex);
-    //removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
+    removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
     // /###############################map faces needed if no remove triangles
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        faces[i][0] = listOfFaces.at(i).get_aIndex();
-        faces[i][1] = listOfFaces.at(i).get_bIndex();
-        faces[i][2] = listOfFaces.at(i).get_cIndex();
-    }
-    faces.resize(listOfFaces.size(), std::vector<int>(3));
-    faceMatrix.resize(listOfFaces.size(), 3);
+    // for (int i = 0; i < listOfFaces.size(); i++)
+    // {
+    //     faces[i][0] = listOfFaces.at(i).get_aIndex();
+    //     faces[i][1] = listOfFaces.at(i).get_bIndex();
+    //     faces[i][2] = listOfFaces.at(i).get_cIndex();
+    // }
+    // faces.resize(listOfFaces.size(), std::vector<int>(3));
+    // faceMatrix.resize(listOfFaces.size(), 3);
+
+    // for (int i = 0; i < listOfFaces.size(); i++)
+    // {
+    //     faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+    // }
+    outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
+
+    // #################################
+    // we want to remove unused points from both the list of points
+    // go through list of faces and check indexes, create a list of indexes
+    // problem is size of this when we have non consecutive ordering,
+
+    std::vector<Point> temp_listOfPoints;
+    int aIndex, bIndex, cIndex;
+    int count = 0;
+    // generaous guess of size for points from faces, can resize later
+    // temp_listOfPoints.resize(listOfFaces.size()*3);
 
     for (int i = 0; i < listOfFaces.size(); i++)
     {
-        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+        aIndex = listOfFaces.at(i).get_aIndex();
+        bIndex = listOfFaces.at(i).get_bIndex();
+        cIndex = listOfFaces.at(i).get_cIndex();
+
+        if (!(std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(aIndex)) != temp_listOfPoints.end()))
+        {
+            temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_aIndex()));
+            std::cout << "i: " << i << "\taindex: " << listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_index() << "\n";
+            count++;
+        }
+        if (!(std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(bIndex)) != temp_listOfPoints.end()))
+        {
+            temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_bIndex()));
+            std::cout << "i: " << i << "\tbindex: " << listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_index() << "\n";
+            count++;
+        }
+        if (!(std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(cIndex)) != temp_listOfPoints.end()))
+        {
+            temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_cIndex()));
+            std::cout << "i: " << i << "\tcindex: " << listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_index() << "\n";
+            count++;
+        }
     }
-    outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
+    // temp_listOfPoints.resize(count);
+    std::cout << "temp size: " << temp_listOfPoints.size() << "\n";
+
+    for (int i = 0; i < temp_listOfPoints.size(); i++)
+    {
+        std::cout << temp_listOfPoints.at(i).get_index() << " " << temp_listOfPoints.at(i).get_x() << " "
+                  << temp_listOfPoints.at(i).get_y() << " "
+                  << temp_listOfPoints.at(i).get_z() << "\n";
+    }
+
+    std::cout << "List of point size  (before): " << listOfPoints.size() << "\n";
+    //listOfPoints.swap(temp_listOfPoints);
+    //listOfPoints = temp_listOfPoints;
+
+    std::cout << "List of point size  (after): " << listOfPoints.size() << "\n";
+
+    
+
+    // for(int i=0; i<temp_listOfPoints.size();i++)
+    // {
+    //     std::cout << "i: " << temp_listOfPoints.
+    // }
+
     // outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
 
     // listOfFaces.swap(patch_listOfFaces);
@@ -798,6 +862,7 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
 
             if (listOfFaces.at(i).get_aIndex() == j) // Weight 1
             {
+                //std::cout << "i: " << i << " j: " << j << "    Weight 1\n";
                 // real part x3-x2
                 // M(i, j) = 1;
                 M.insert(i, j) = 1; // for sparse we need .insert()
@@ -811,6 +876,28 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 //                       listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) /
                 //                      sqrt(abs(listOfAreas.at(i))); // W1/sqrt(dt)       //W1 = (x3-x2)+ i (y3-y2)
                 //                                                 // because dividing by sqrt of negative, should this be in complex part?
+
+                Eigen::Vector3d X, n, Y;
+                Eigen::Vector3d temp((listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                                     (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                                     (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z()));
+
+                X = temp / temp.norm();
+
+                // std::cout << "X\n"
+                //           << X << "\n";
+
+                temp << (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z());
+
+                n = X.cross(temp) / ((X.cross(temp)).norm());
+
+                Y = n.cross(X);
+                // std::cout << "i: " << i << "\tn\n"
+                //           << n << "\n";
+                std::cout << "i: " << i << " norm() " << n.norm() << "\n";
+
                 double angle_between_AB_AC;
 
                 Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
@@ -845,15 +932,22 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 double Xa, Xb, Xc;
                 double Ya, Yb, Yc;
 
+                // Xa = 0; // A is at the origin
+                // Ya = 0;
+
+                // Xb = 1; // vAB_norm.norm()/magX; //1; // vAB_norm.norm()/magX;
+                // Yb = 0;
+
+                // Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
+                // Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
                 Xa = 0; // A is at the origin
                 Ya = 0;
 
-                Xb = 1; // vAB_norm.norm()/magX; //1; // vAB_norm.norm()/magX;
+                Xb = vAB.norm(); // vAB_norm.norm() / magX;
                 Yb = 0;
 
-                Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
-                Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
-
+                Xc = vAC.norm() * cos(angle_between_AB_AC); // vAC_mag   vAC_norm.norm()
+                Yc = vAC.norm() * sin(angle_between_AB_AC); // vAC_norm.norm()
                 // std::cout << "Results:\n"
                 //           << "Xa: " << Xa << "\tYa: " << Ya << "\n"
                 //           << "Xb: " << Xb << "\tYb: " << Yb << "\n"
@@ -868,6 +962,7 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
 
             if (listOfFaces.at(i).get_bIndex() == j) // Weight 2
             {
+                //std::cout << "i: " << i << " j: " << j << "    Weight 2\n";
                 // real part x1-x3
                 M.insert(i, j) = 2;
                 // A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() -
@@ -878,6 +973,26 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 // A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
                 //                       listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) /
                 //                      sqrt(abs(listOfAreas.at(i)));
+                Eigen::Vector3d X, n, Y;
+                Eigen::Vector3d temp((listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                                     (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                                     (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z()));
+
+                X = temp / temp.norm();
+
+                // std::cout << "X\n"
+                //           << X << "\n";
+
+                temp << (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z());
+
+                n = X.cross(temp) / ((X.cross(temp)).norm());
+
+                Y = n.cross(X);
+                // std::cout << "i: " << i << "\tn\n"
+                //           << n << "\n";
+                std::cout << "i: " << i << " norm() " << n.norm() << "\n";
                 double angle_between_AB_AC;
 
                 Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
@@ -912,14 +1027,23 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 double Xa, Xb, Xc;
                 double Ya, Yb, Yc;
 
+                // Xa = 0; // A is at the origin
+                // Ya = 0;
+
+                // Xb = 1; // vAB_norm.norm()/magX;    //1
+                // Yb = 0;
+
+                // Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
+                // Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
+
                 Xa = 0; // A is at the origin
                 Ya = 0;
 
-                Xb = 1; // vAB_norm.norm()/magX;    //1
+                Xb = vAB.norm(); // vAB_norm.norm() / magX;
                 Yb = 0;
 
-                Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
-                Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
+                Xc = vAC.norm() * cos(angle_between_AB_AC); // vAC_mag   vAC_norm.norm()
+                Yc = vAC.norm() * sin(angle_between_AB_AC); // vAC_norm.norm()
 
                 // std::cout << "Results:\n"
                 //           << "Xa: " << Xa << "\tYa: " << Ya << "\n"
@@ -935,6 +1059,7 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
 
             if (listOfFaces.at(i).get_cIndex() == j) // Weight 3
             {
+                //std::cout << "i: " << i << " j: " << j << "     Weight 3\n";
                 // real part x2-x1
                 M.insert(i, j) = 3;
                 // A_Mf1.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() -
@@ -945,6 +1070,26 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 // A_Mf2.insert(i, j) = (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
                 //                       listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()) /
                 //                      sqrt(abs(listOfAreas.at(i)));
+                Eigen::Vector3d X, n, Y;
+                Eigen::Vector3d temp((listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                                     (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                                     (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z()));
+
+                X = temp / temp.norm();
+
+                // std::cout << "X\n"
+                //           << X << "\n";
+
+                temp << (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y()),
+                    (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z()) - (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z());
+
+                n = X.cross(temp) / ((X.cross(temp)).norm());
+
+                Y = n.cross(X);
+                // std::cout << "i: " << i << "\tn\n"
+                //           << n << "\n";
+                std::cout << "i: " << i << " norm() " << n.norm() << "\n";
                 double angle_between_AB_AC;
 
                 Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
@@ -979,14 +1124,22 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 double Xa, Xb, Xc;
                 double Ya, Yb, Yc;
 
+                // Xa = 0; // A is at the origin
+                // Ya = 0;
+
+                // Xb = 1; // vAB_norm.norm()/magX;
+                // Yb = 0;
+
+                // Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
+                // Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
                 Xa = 0; // A is at the origin
                 Ya = 0;
 
-                Xb = 1; // vAB_norm.norm()/magX;
+                Xb = vAB.norm(); // vAB_norm.norm() / magX;
                 Yb = 0;
 
-                Xc = vAC_norm.norm() * cos(angle_between_AB_AC); // vAC_mag
-                Yc = vAC_norm.norm() * sin(angle_between_AB_AC);
+                Xc = vAC.norm() * cos(angle_between_AB_AC); // vAC_mag   vAC_norm.norm()
+                Yc = vAC.norm() * sin(angle_between_AB_AC); // vAC_norm.norm()
 
                 // std::cout << "Results:\n"
                 //           << "Xa: " << Xa << "\tYa: " << Ya << "\n"
@@ -1001,6 +1154,8 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
             }
         }
     }
+
+    std::cout << "Dimensions of M: " << M.rows() << " x " << M.cols() << "\n";
 
     // std::cout << "\n\nFilled matrix M:\n\n";
     // std::cout << Eigen::MatrixXd(M) << "\n\n"

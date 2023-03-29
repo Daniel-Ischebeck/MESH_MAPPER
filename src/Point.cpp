@@ -40,6 +40,14 @@ Point &Point::operator=(const Point &thePoint)
     return *this;
 }
 
+// equivalent
+bool Point::operator==(const Point &thePoint)
+{
+    if (pointIndex == thePoint.pointIndex) //  other comparisons will require double comapriosn function
+        return true;
+    return false;
+}
+
 double Point::get_index() { return pointIndex; }
 double Point::get_x() { return x; }
 double Point::get_y() { return y; }
