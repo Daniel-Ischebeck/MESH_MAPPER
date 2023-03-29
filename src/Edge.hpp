@@ -14,6 +14,7 @@ public:
     bool operator==(const Edge &theEdge);
 
     int get_index1();
+    int get_index2();
 
 private:
     int index1, index2;

@@ -10,6 +10,7 @@ Edge::Edge(int _index1, int _index2)
 
 bool Edge::operator==(const Edge &theEdge)
 {
+    //#####################This may also affect patch creation if changed??############
     // two edges are equal if index1=index1 and index2=index2     or   backwards?    index1=index2 and index2=index1
     if ((index1 == theEdge.index1 && index2 == theEdge.index2) || (index1 == theEdge.index2 && index2 == theEdge.index1))
         return true;
@@ -38,3 +39,4 @@ Edge &Edge::operator=(const Edge &theEdge)
 }
 
 int Edge::get_index1() { return index1; }
+int Edge::get_index2() { return index2; }
