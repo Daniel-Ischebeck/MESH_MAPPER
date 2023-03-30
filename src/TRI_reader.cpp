@@ -231,6 +231,9 @@ int main()
     int indexA, indexB, indexC;
     int j = 0;
 
+    // std::vector<int> sharePoint;
+    std::map<int, Eigen::VectorXi> sharePoint;
+
 label:
     for (j; j < 5; j++)
     {
@@ -250,8 +253,9 @@ label:
             // std::cout << j << " B\n";
             listOfIndicies.push_back(indexB);
             Eigen::VectorXi resultVectorB = find_triangles(indexB, listOfFaces);
-            // std::cout << "result: \n"
-            //           << resultVector << "\n";
+            std::cout << "j: " << j << "   result B: \n"
+                      << resultVectorB << "\n";
+            sharePoint[j] = resultVectorB;
 
             for (int i = 0; i < resultVectorB.rows(); i++)
             {
@@ -276,6 +280,7 @@ label:
                         patch_listOfFaces.at(patch_faceIndex) = theFace;
                         patch_faceIndex++;
                         std::cout << "B\tZ normal: " << listOfZNormals.at(i) << "\n";
+                        // std::cout << "result vector B i: " << resultVectorB(i) << "\n";
                     }
                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
                     // patch_faceIndex++;
@@ -283,6 +288,8 @@ label:
                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
                 //  patch_faceIndex++;
             }
+            j++;
+            goto label;
         }
 
         indexC = patch_listOfFaces.at(j).get_cIndex();
@@ -299,8 +306,9 @@ label:
             // std::cout << j << " B\n";
             listOfIndicies.push_back(indexC);
             Eigen::VectorXi resultVectorC = find_triangles(indexC, listOfFaces);
-            // std::cout << "result: \n"
-            //           << resultVector << "\n";
+            std::cout << "j: " << j << "   result C: \n"
+                      << resultVectorC << "\n";
+            sharePoint[j] = resultVectorC;
 
             for (int i = 0; i < resultVectorC.rows(); i++)
             {
@@ -333,6 +341,8 @@ label:
                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
                 //  patch_faceIndex++;
             }
+            j++;
+            goto label;
         }
 
         indexA = patch_listOfFaces.at(j).get_aIndex();
@@ -349,8 +359,9 @@ label:
             // std::cout << j << " B\n";
             listOfIndicies.push_back(indexA);
             Eigen::VectorXi resultVectorA = find_triangles(indexA, listOfFaces);
-            // std::cout << "result: \n"
-            //           << resultVector << "\n";
+            std::cout << "j: " << j << "   result A: \n"
+                      << resultVectorA << "\n";
+            sharePoint[j] = resultVectorA;
 
             for (int i = 0; i < resultVectorA.rows(); i++)
             {
@@ -382,6 +393,8 @@ label:
                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
                 //  patch_faceIndex++;
             }
+            j++;
+            goto label;
         }
 
         // std::cout << "patch_faceIndex: " << patch_faceIndex << "\n";
@@ -389,6 +402,13 @@ label:
 
 done:
 
+    // testing shared point map
+    for (std::map<int, Eigen::VectorXi>::iterator miter = sharePoint.begin(); miter != sharePoint.end(); ++miter)
+    {
+        std::cout << "\nKey = " << (*miter).first << "\nvalue =\n"
+                  << (*miter).second;
+    }
+    std::cout << "\n\n";
     //     //     // currently we now want to work with patch_list_of_faces not the normal one
     //     //     // also as we havent removed triangles from this model, we havent generated the face matrix yet
     //     //     // ideally we would have options that we could select, i.e. preprocess -Y/N , remove tri - Y/N, select patch - Y/N etc/
@@ -431,19 +451,19 @@ done:
         if (!(std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(aIndex)) != temp_listOfPoints.end()))
         {
             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_aIndex()));
-            std::cout << "i: " << i << "\taindex: " << listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_index() << "\n";
+            // std::cout << "i: " << i << "\taindex: " << listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_index() << "\n";
             count++;
         }
         if (!(std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(bIndex)) != temp_listOfPoints.end()))
         {
             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_bIndex()));
-            std::cout << "i: " << i << "\tbindex: " << listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_index() << "\n";
+            // std::cout << "i: " << i << "\tbindex: " << listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_index() << "\n";
             count++;
         }
         if (!(std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(cIndex)) != temp_listOfPoints.end()))
         {
             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_cIndex()));
-            std::cout << "i: " << i << "\tcindex: " << listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_index() << "\n";
+            // std::cout << "i: " << i << "\tcindex: " << listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_index() << "\n";
             count++;
         }
     }
@@ -513,22 +533,162 @@ done:
     // Edge testingTwo = listOfFaces.at(2).get_faceEdges();
     if (compareEdges(listOfFaces.at(0).get_faceEdges(), listOfFaces.at(2).get_faceEdges()))
     {
-        std::cout << "Triangles share an edge\n\n";
+        std::cout << "Triangles 0 and 2 share an edge\n\n";
     }
 
+    if (compareEdges(listOfFaces.at(1).get_faceEdges(), listOfFaces.at(2).get_faceEdges()))
+    {
+        std::cout << "Triangles 1 and 2 share an edge\n\n";
+    }
 
-    //for shared edge, check whether theres a conflict
-    //we know for this example that faceEdges.at(1) is shared.
-    
-    if(listOfFaces.at(0).get_faceEdges().at(1).get_index1() ==  listOfFaces.at(2).get_faceEdges().at(1).get_index1() )
+    // for shared edge, check whether theres a conflict
+    // we know for this example that faceEdges.at(1) is shared.
+
+    whichEdgeShared(listOfFaces.at(14).get_faceEdges(), listOfFaces.at(5).get_faceEdges());
+
+    Edge resultEdge = whichEdgeShared(listOfFaces.at(4).get_faceEdges(), listOfFaces.at(5).get_faceEdges());
+    // 4 and 5 share an edge, but is in different positions
+    std::cout << "Index1: " << resultEdge.get_index1() << "\tIndex 2: " << resultEdge.get_index2() << "\n";
+
+    if (listOfFaces.at(0).get_faceEdges().at(1).get_index1() == listOfFaces.at(2).get_faceEdges().at(1).get_index1())
     {
         std::cout << "Winding conflict!!\n";
     }
 
+    // std::map<int, std::vector<int>> neighbours;
+    std::vector<Eigen::VectorXi> theResults;
+
+    std::vector<int> simulatedChange = {};
+
+    for (std::map<int, Eigen::VectorXi>::iterator miter = sharePoint.begin(); miter != sharePoint.end(); ++miter)
+    {
+        std::cout << "\nKey = " << (*miter).first << "\nvalue =\n"
+                  << (*miter).second;
+        // std::cout<< "\nTest access first " << (*miter).second(1)  << "\n";
+        Eigen::VectorXi theResult = (*miter).second;
+        theResults.push_back(theResult);
+        // for(auto sharedPoint:theResult)
+        // {
+        //     std::cout < "A shared point " << sharedPoint << "\n";
+        // }
+    }
+
+    int triangleWereTesting = 0;
+
+    std::cout << "\n\ntesting results\n";
+    Edge theSharedEdge(-1, -1);
+    Edge failEdge(-1, -1);
+
+    for (triangleWereTesting = 0; triangleWereTesting < listOfFaces.size(); triangleWereTesting++)
+    {
+
+        for (int i = 0; i < theResults.size(); i++)
+        {
+            for (int j = 0; j < theResults.at(i).size(); j++)
+            {
+                std::cout << theResults.at(i)(j) << "\n";
+
+                if ((theResults.at(i)(j)) < listOfFaces.size())
+                {
+                    std::cout << "Testing triangle: " << triangleWereTesting << "\n";
+                    theSharedEdge = whichEdgeShared(listOfFaces.at(triangleWereTesting).get_faceEdges(), listOfFaces.at(theResults.at(i)(j)).get_faceEdges());
+                    if (!(theSharedEdge == failEdge))
+                    {
+                        std::cout << "shared edge: " << theSharedEdge.get_index1() << " " << theSharedEdge.get_index2() << "\n";
+                    }
+
+                    // triangleWereTesting++;
+                    // if(triangleWereTesting==listOfFaces.size()-1)
+                    // {
+                    //     std::cout << "done";
+                    //     goto done1;
+                    // }
+                }
+            }
+            std::cout << "\nnext\n";
+        }
+
+        if (triangleWereTesting == listOfFaces.size() - 1)
+        {
+            std::cout << "done";
+            goto done1;
+        }
+    }
+done1:
+
+    // #####################
+    std::map<int, std::vector<int> > neighbours;
+    std::cout << "\nBrute\n";
+    std::vector<int> shared;    // = {8,7,6};
+    // shared.resize(1);
+
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        std::vector<int> shared; 
+        for (int j = 0; j < listOfFaces.size(); j++)
+        {
+            if ((compareEdges(listOfFaces.at(i).get_faceEdges(), listOfFaces.at(j).get_faceEdges())) && i != j)
+            {
+                std::cout << "Triangle " << i << " and triangle " << j << " share an edge\n";
+                shared.push_back(j);
+                // neighbours.insert({i, shared});
+            }
+        }
+        neighbours.insert({i, shared});
+        //shared.clear();
+        // shared.resize(1);
+    }
+
+    std::vector<int> temp;
+
+    for (std::map<int, std::vector<int>>::iterator miter = neighbours.begin(); miter != neighbours.end(); ++miter)
+    {
+        std::cout << "\nKey = " << (*miter).first << "\nvalues =\n"; // (miter->second).at(0);   //note can have 1,2 oe 3 neihgbours
+        // std::cout << "size: " << neighbours[0]size();
+        //  temp = (*miter).second.;  //((miter->second));
+        //  std::cout << "temp size: " << temp.size() << "\n";
+         switch ((miter->second).size())
+         {
+         case 1:
+             std::cout << (miter->second).at(0) << "\n";
+             break;
+         case 2:
+             std::cout << (miter->second).at(0) << "\n"
+                       << (miter->second).at(1) << "\n";
+             break;
+         case 3:
+             std::cout << (miter->second).at(0) << "\n"
+                       << (miter->second).at(1) << "\n"
+                       << (miter->second).at(2) << "\n";
+             break;
+         }
+    }
+   
+   
+    // temp = neighbours[0];
+    // std::cout << "size: " << temp.size() << "\n";
+    //std::cout << "data: " << temp.at(2) << "\n";
+
+    // for (const auto &idx : neighbours)
+    // {
+    //     // idx.first is the key
+    //     // idx.second is the vector
+    //     std::cout << idx.first << ": ";
+    //     for (auto val : idx.second)
+    //     {
+    //         // ^ no &, makes copies of values but they're ints so it's ok.
+    //         val.
+    //         std::cout << val << " ";
+    //     }
+    //     std::cout << "\n";
+    // }
+
+    // rather than having to search all triangles
+    // we only need to search triangles we know that share a point with
 
     /// #############
     // std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\n\n";
-    std::cout << "1\n";
+    std::cout << "\nPre areas\n";
     std::vector<double> listOfAreas(listOfFaces.size());
 
     if (!calcTriangleAreas(listOfPoints, listOfFaces, listOfAreas))
@@ -836,7 +996,7 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 Y = n.cross(X);
                 // std::cout << "i: " << i << "\tn\n"
                 //           << n << "\n";
-                std::cout << "i: " << i << " norm() " << n.norm() << "\n";
+                // std::cout << "i: " << i << " norm() " << n.norm() << "\n";
 
                 double angle_between_AB_AC;
 
@@ -932,7 +1092,7 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 Y = n.cross(X);
                 // std::cout << "i: " << i << "\tn\n"
                 //           << n << "\n";
-                std::cout << "i: " << i << " norm() " << n.norm() << "\n";
+                // std::cout << "i: " << i << " norm() " << n.norm() << "\n";
                 double angle_between_AB_AC;
 
                 Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
@@ -1029,7 +1189,7 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 Y = n.cross(X);
                 // std::cout << "i: " << i << "\tn\n"
                 //           << n << "\n";
-                std::cout << "i: " << i << " norm() " << n.norm() << "\n";
+                // std::cout << "i: " << i << " norm() " << n.norm() << "\n";
                 double angle_between_AB_AC;
 
                 Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
@@ -1394,4 +1554,25 @@ bool compareEdges(std::vector<Edge> &first, std::vector<Edge> &second)
         return true;
     }
     return false;
+}
+
+Edge whichEdgeShared(std::vector<Edge> &first, std::vector<Edge> &second)
+{
+    if (std::find(first.begin(), first.end(), second.at(0)) != first.end())
+    {
+        return second.at(0);
+    }
+    if (std::find(first.begin(), first.end(), second.at(1)) != first.end())
+    {
+        return second.at(1);
+    }
+    if (std::find(first.begin(), first.end(), second.at(2)) != first.end())
+    {
+        return second.at(2);
+    }
+
+    else
+    {
+        return Edge(-1, -1);
+    }
 }
