@@ -235,7 +235,7 @@ int main()
     std::map<int, Eigen::VectorXi> sharePoint;
 
 label:
-    for (j; j < 5; j++)
+    for (j; j < 1; j++)
     {
         // std::cout<<"j: " << j << "\n";
 
@@ -431,6 +431,10 @@ done:
     }
     outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
 
+    outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
+
+    //listOfFaces.swap(patch_listOfFaces);
+    listOfFaces = patch_listOfFaces;
     // #################################
     // we want to remove unused points from both the list of points
     // go through list of faces and check indexes, create a list of indexes
@@ -448,19 +452,37 @@ done:
         bIndex = listOfFaces.at(i).get_bIndex();
         cIndex = listOfFaces.at(i).get_cIndex();
 
-        if (!(std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(aIndex)) != temp_listOfPoints.end()))
+        if ((std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(aIndex)) != temp_listOfPoints.end()))
+        {
+        //     temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_aIndex()));
+        //     // std::cout << "i: " << i << "\taindex: " << listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_index() << "\n";
+        //     count++;
+        }
+        else
         {
             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_aIndex()));
             // std::cout << "i: " << i << "\taindex: " << listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_index() << "\n";
             count++;
         }
-        if (!(std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(bIndex)) != temp_listOfPoints.end()))
+        if ((std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(bIndex)) != temp_listOfPoints.end()))
+        {
+            // temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_bIndex()));
+            // // std::cout << "i: " << i << "\tbindex: " << listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_index() << "\n";
+            // count++;
+        }
+        else
         {
             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_bIndex()));
             // std::cout << "i: " << i << "\tbindex: " << listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_index() << "\n";
             count++;
         }
-        if (!(std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(cIndex)) != temp_listOfPoints.end()))
+        if ((std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(cIndex)) != temp_listOfPoints.end()))
+        {
+            // temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_cIndex()));
+            // // std::cout << "i: " << i << "\tcindex: " << listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_index() << "\n";
+            // count++;
+        }
+        else
         {
             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_cIndex()));
             // std::cout << "i: " << i << "\tcindex: " << listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_index() << "\n";
@@ -490,9 +512,7 @@ done:
     //     std::cout << "i: " << temp_listOfPoints.
     // }
 
-    outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
 
-    listOfFaces.swap(patch_listOfFaces);
 
     // for(int i=0; i<10; i++)  //testing swap
     // {
@@ -518,7 +538,7 @@ done:
 
     ////######################################
     ////fixing triangle winding
-    std::vector<Face> winding_listOfFaces;
+    // std::vector<Face> winding_listOfFaces;
 
     // make all triangles follow the winding direction of triangle 0
     // the actual order doesnt matter as ling as mesh is consistent
@@ -528,7 +548,7 @@ done:
 
     // adjacent triangle code can be nicked from patch stuff?
 
-    winding_listOfFaces.push_back(listOfFaces.at(0)); // first triangle
+    // winding_listOfFaces.push_back(listOfFaces.at(0)); // first triangle
     // Edge testingOne = listOfFaces.at(0).get_faceEdges();
     // Edge testingTwo = listOfFaces.at(2).get_faceEdges();
     if (compareEdges(listOfFaces.at(0).get_faceEdges(), listOfFaces.at(2).get_faceEdges()))
@@ -544,7 +564,7 @@ done:
     // for shared edge, check whether theres a conflict
     // we know for this example that faceEdges.at(1) is shared.
 
-    whichEdgeShared(listOfFaces.at(14).get_faceEdges(), listOfFaces.at(5).get_faceEdges());
+    // whichEdgeShared(listOfFaces.at(14).get_faceEdges(), listOfFaces.at(5).get_faceEdges());
 
     Edge resultEdge = whichEdgeShared(listOfFaces.at(4).get_faceEdges(), listOfFaces.at(5).get_faceEdges());
     // 4 and 5 share an edge, but is in different positions
@@ -617,14 +637,14 @@ done:
 done1:
 
     // #####################
-    std::map<int, std::vector<int> > neighbours;
+    std::map<int, std::vector<int>> neighbours;
     std::cout << "\nBrute\n";
-    std::vector<int> shared;    // = {8,7,6};
+    std::vector<int> shared; // = {8,7,6};
     // shared.resize(1);
 
     for (int i = 0; i < listOfFaces.size(); i++)
     {
-        std::vector<int> shared; 
+        std::vector<int> shared;
         for (int j = 0; j < listOfFaces.size(); j++)
         {
             if ((compareEdges(listOfFaces.at(i).get_faceEdges(), listOfFaces.at(j).get_faceEdges())) && i != j)
@@ -635,8 +655,8 @@ done1:
             }
         }
         neighbours.insert({i, shared});
-        //shared.clear();
-        // shared.resize(1);
+        // shared.clear();
+        //  shared.resize(1);
     }
 
     std::vector<int> temp;
@@ -644,30 +664,119 @@ done1:
     for (std::map<int, std::vector<int>>::iterator miter = neighbours.begin(); miter != neighbours.end(); ++miter)
     {
         std::cout << "\nKey = " << (*miter).first << "\nvalues =\n"; // (miter->second).at(0);   //note can have 1,2 oe 3 neihgbours
-        // std::cout << "size: " << neighbours[0]size();
-        //  temp = (*miter).second.;  //((miter->second));
-        //  std::cout << "temp size: " << temp.size() << "\n";
-         switch ((miter->second).size())
-         {
-         case 1:
-             std::cout << (miter->second).at(0) << "\n";
-             break;
-         case 2:
-             std::cout << (miter->second).at(0) << "\n"
-                       << (miter->second).at(1) << "\n";
-             break;
-         case 3:
-             std::cout << (miter->second).at(0) << "\n"
-                       << (miter->second).at(1) << "\n"
-                       << (miter->second).at(2) << "\n";
-             break;
-         }
+                                                                     // std::cout << "size: " << neighbours[0]size();
+                                                                     //  temp = (*miter).second.;  //((miter->second));
+                                                                     //  std::cout << "temp size: " << temp.size() << "\n";
+        switch ((miter->second).size())
+        {
+        case 1:
+            std::cout << (miter->second).at(0) << "\n";
+            break;
+        case 2:
+            std::cout << (miter->second).at(0) << "\n"
+                      << (miter->second).at(1) << "\n";
+            break;
+        case 3:
+            std::cout << (miter->second).at(0) << "\n"
+                      << (miter->second).at(1) << "\n"
+                      << (miter->second).at(2) << "\n";
+            break;
+        }
     }
-   
-   
+
+    std::cout << "\n\nPre any changes to ordering\n";
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        std::cout << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << "\n";
+    }
+
+    std::vector<Face> winding_listOfFaces;
+
+    // make all triangles follow the winding direction of triangle 0
+    // the actual order doesnt matter as ling as mesh is consistent
+
+    // add a beginning triangle to list
+    // find adjacent triangles to current triangle, check windinding direction. if it needs to be flipped, do so and add to list
+
+    winding_listOfFaces.push_back(listOfFaces.at(0)); // seed
+
+    int triangleIndex = 0;
+
+    int numNeighbours = neighbours[triangleIndex].size();
+    // std::cout << "Triangle " << triangleIndex << " has " << numNeighbours << " neighbours\n";
+    std::cout << "map size: " << neighbours.size() << "\n";
+    // loop through all triangles
+    // loop through all neighbours
+    // std::cout << neighbours[0].at(0) << ", " << neighbours[0].at(1) << ", " << neighbours[0].at(2) << "\n";
+
+    for (triangleIndex = 0; triangleIndex < listOfFaces.size(); triangleIndex++)
+    {
+
+        // std::cout << "Triangle " << triangleIndex << " has " << numNeighbours << " neighbours\n";
+
+        for (int i = 0; i < neighbours.size(); i++)
+        {
+            // numNeighbours = neighbours[triangleIndex].size();
+            for (int j = 0; j < neighbours[i].size(); j++)
+            {
+                // check for winding conflicts
+                // std::cout << "tri index: " << triangleIndex << "\n";
+                // std::cout << "i: " << i << " j: " << j << "\tnum neigh: " << neighbours[i].size() << "\n";
+                // std::cout << "i: " << i << " j: " << j << "\tindex: " << neighbours[i].at(j) << "\n";
+                // std::cout << "i: " << i << " j: " << j << "\tindex: " << neighbours[8].at(0) << "\n";
+
+                if (listOfFaces.at(triangleIndex).get_faceEdges().at(0).get_index1() == listOfFaces.at(neighbours[i].at(j)).get_faceEdges().at(0).get_index1() &&
+                    listOfFaces.at(triangleIndex).get_faceEdges().at(0).get_index2() == listOfFaces.at(neighbours[i].at(j)).get_faceEdges().at(0).get_index2() &&
+                    triangleIndex != neighbours[i].at(j))
+                {
+                    std::cout << "Conflict (0) between triangle " << triangleIndex << " and traingle " << neighbours[i].at(j) << "\n";
+                }
+
+                if (neighbours[i].size() == 2)
+                {
+                    if (listOfFaces.at(triangleIndex).get_faceEdges().at(1).get_index1() == listOfFaces.at(neighbours[i].at(j)).get_faceEdges().at(1).get_index1() &&
+                        listOfFaces.at(triangleIndex).get_faceEdges().at(1).get_index2() == listOfFaces.at(neighbours[i].at(j)).get_faceEdges().at(1).get_index2() &&
+                        triangleIndex != neighbours[i].at(j))
+                    {
+                        std::cout << "Conflict (1) between triangle " << triangleIndex << " and traingle " << neighbours[i].at(j) << "\n";
+                    }
+                }
+
+                // if (neighbours[i].size() == 3)
+                // {
+                if (listOfFaces.at(triangleIndex).get_faceEdges().at(2).get_index1() == listOfFaces.at(neighbours[i].at(j)).get_faceEdges().at(2).get_index1() &&
+                    listOfFaces.at(triangleIndex).get_faceEdges().at(2).get_index2() == listOfFaces.at(neighbours[i].at(j)).get_faceEdges().at(2).get_index2() &&
+                    triangleIndex != neighbours[i].at(j))
+                {
+                    std::cout << "Conflict (2) between triangle " << triangleIndex << " and traingle " << neighbours[i].at(j) << "\n";
+                }
+                // }
+            }
+        }
+    }
+
+    // listOfFaces.at(2) = Face(2, 34,21,13);
+    // listOfFaces.at(3) = Face(3, 41,21,9);
+    // listOfFaces.at(8) = Face(8, 14,13,0);
+    // listOfFaces.at(13) = Face(13, 41,24,11);
+    // listOfFaces.at(7) = Face(7, 28,13,4);
+    // listOfFaces.at(17) = Face(17, 37,24,11);
+
+    listOfFaces.at(2) = Face(2, 34, 21, 13);
+    listOfFaces.at(3) = Face(3, 41, 21, 9);
+    listOfFaces.at(5) = Face(5, 41, 24, 21);
+
+    // note this coud generate new conflicts - there is another o havent included as it would do this
+    outputTRIfile(listOfPoints, listOfFaces, "attemptedResolve.tri");
+
+    // if (listOfFaces.at(0).get_faceEdges().at(1).get_index1() == listOfFaces.at(2).get_faceEdges().at(1).get_index1())
+    // {
+    //     std::cout << "Winding conflict!!\n";
+    // }
+
     // temp = neighbours[0];
     // std::cout << "size: " << temp.size() << "\n";
-    //std::cout << "data: " << temp.at(2) << "\n";
+    // std::cout << "data: " << temp.at(2) << "\n";
 
     // for (const auto &idx : neighbours)
     // {
@@ -687,10 +796,10 @@ done1:
     // we only need to search triangles we know that share a point with
 
     /// #############
-    // std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\n\n";
+    std::cout << "List: " << listOfFaces.size() << "\tMatrix: " << faceMatrix.rows() << "\tpoints: " << listOfPoints.size() << "\n\n";
     std::cout << "\nPre areas\n";
     std::vector<double> listOfAreas(listOfFaces.size());
-
+    std::cout << "?\n";
     if (!calcTriangleAreas(listOfPoints, listOfFaces, listOfAreas))
     {
         std::cout << "Triangle calcualtion failed\n";

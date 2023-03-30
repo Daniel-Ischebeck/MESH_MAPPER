@@ -39,7 +39,7 @@ bool outputTRIfile(std::vector<Point> &listOfPoints,
     outputTRIfile << listOfPoints.size() << " 3 0\n"; // uv output points will always have 2 dimensions and 0 attributes
     for (int i = 0; i < listOfPoints.size(); i++)
     {
-        outputTRIfile << i << " " << listOfPoints.at(i).get_x() << " "
+        outputTRIfile << listOfPoints.at(i).get_index() << " " << listOfPoints.at(i).get_x() << " "
                       << listOfPoints.at(i).get_y() << " "
                       << listOfPoints.at(i).get_z() << "\n";
         // outputTRIfile << i << " " << pointMatrix(i, 0) << " "
