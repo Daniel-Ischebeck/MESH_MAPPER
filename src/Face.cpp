@@ -10,9 +10,9 @@ Face::Face(int _faceIndex, int _aIndex, int _bIndex, int _cIndex)
     cIndex = _cIndex;
 
     faceEdges.resize(3);
-    faceEdges.at(0) = Edge(_aIndex, _bIndex);
-    faceEdges.at(1) = Edge(_bIndex, _cIndex);
-    faceEdges.at(2) = Edge(_cIndex, _aIndex);
+    faceEdges.at(0) = Edge(0, _aIndex, _bIndex);
+    faceEdges.at(1) = Edge(1, _bIndex, _cIndex);
+    faceEdges.at(2) = Edge(2, _cIndex, _aIndex);
     /*
     edge0 = Edge(_aIndex, _bIndex);
     edge1 = Edge(_bIndex, _cIndex);
@@ -34,6 +34,7 @@ Face::Face(const Face &theFace)
     cIndex = theFace.cIndex;
 
     faceEdges = theFace.faceEdges;
+    windingDirection = theFace.windingDirection;
 }
 
 // asssignment
@@ -48,6 +49,7 @@ Face &Face::operator=(const Face &theFace)
     cIndex = theFace.cIndex;
 
     faceEdges = theFace.faceEdges;
+    windingDirection = theFace.windingDirection;
     return *this;
 }
 
@@ -69,3 +71,6 @@ void Face::set_faceIndex(int newIndex) { faceIndex = newIndex; }
 std::vector<Edge> Face::get_faceEdges() { return faceEdges; }
 
 Edge Face::get_edge0() { return edge0; }
+
+void Face::set_winding(int _windingDirection) { windingDirection = _windingDirection; }
+int Face::get_winding() { return windingDirection; }

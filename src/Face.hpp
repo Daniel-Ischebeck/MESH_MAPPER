@@ -31,11 +31,15 @@ public:
     std::vector<Edge> get_faceEdges();
     Edge get_edge0();
 
+    void set_winding(int _windingDirection);
+    int get_winding();
+
 private:
     int faceIndex;
     int aIndex, bIndex, cIndex; // triangle with corners defined by verticies  A,B,C
     Edge  edge0, edge1, edge2;
     std::vector<Edge> faceEdges;
+    int windingDirection=0;
 };
 
 

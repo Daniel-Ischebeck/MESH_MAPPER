@@ -56,4 +56,4 @@ Eigen::VectorXi find_triangles(int indexWereAfter,
 
 bool compareEdges(std::vector<Edge> &first, std::vector<Edge> &second);
 
-Edge whichEdgeShared(std::vector<Edge> &first, std::vector<Edge> &second);
+Edge whichEdgeShared(std::vector<Edge> &first, std::vector<Edge> &second, int &indexOfSharedEdge_second, int &indexOfSharedEdge_first);
