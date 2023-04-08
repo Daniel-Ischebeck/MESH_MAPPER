@@ -13,8 +13,8 @@ int main()
     std::vector<Point> listOfPoints;
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
-    // std::string filePath = "partLow.tri";
+    // std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
+    std::string filePath = "hex_mesh.tri";
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
@@ -34,7 +34,7 @@ int main()
     Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
 
     outputTRIfile(listOfPoints, listOfFaces, "pre.tri");
-    removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
+    // removeTriangles(listOfPoints, listOfFaces, faces, faceMatrix);
     // rotateModel(listOfPoints, pointMatrix, points, 'x'); // rotate the model so its orientated sensibly, y for double_dome, x for patch_antenna, x for wing
     // outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
 
