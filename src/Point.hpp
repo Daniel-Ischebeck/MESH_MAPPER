@@ -8,6 +8,8 @@ public:
 
     Point(int _pointIndex, double _x, double _y, double _z);
 
+    Point(double _u, double _v);    //for uv coords
+
     ~Point();
 
     Point(const Point &thePoint); // copy

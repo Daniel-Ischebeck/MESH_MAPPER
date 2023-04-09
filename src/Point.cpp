@@ -16,6 +16,12 @@ Point::Point(int _pointIndex, double _x, double _y, double _z)
     z = _z;
 }
 
+Point::Point(double _u, double _v)
+{
+    x = _u; //for simplicity
+    y = _v;
+}
+
 Point::~Point() {}
 
 // copy constructor

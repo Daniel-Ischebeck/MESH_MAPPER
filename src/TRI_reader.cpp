@@ -70,7 +70,6 @@ int main()
 
     // patch_antenna start point around (30.1,41.6, -36.5) //closer look (30.2,44, -36.5)
 
-
     //     // patch_listOfFaces.at(patch_faceIndex) = Face(patch_faceIndex, listOfFaces.at(195).get_aIndex(), listOfFaces.at(195).get_bIndex(), listOfFaces.at(195).get_cIndex());
     //     // listOfIndicies.push_back(patch_faceIndex);
     //     // patch_faceIndex++;
@@ -89,204 +88,201 @@ int main()
     //     //     std::cout << "i: " << patch_listOfFaces.at(i).get_faceIndex() << "\n";
     //     // }
 
+    // Patch selection
+    // #################################################
+    //      // plant seed triangle - for dome
+    //      // index 0 to allow comparison
+    //      patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(0).get_aIndex(), listOfFaces.at(0).get_bIndex(), listOfFaces.at(0).get_cIndex());
+    //      patch_faceIndex++;
 
-//Patch selection
-//#################################################
-                    //     // plant seed triangle - for dome
-                    //     // index 0 to allow comparison
-                    //     patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(0).get_aIndex(), listOfFaces.at(0).get_bIndex(), listOfFaces.at(0).get_cIndex());
-                    //     patch_faceIndex++;
+    //     int indexA, indexB, indexC;
+    //     int j = 0;
 
-                    //     int indexA, indexB, indexC;
-                    //     int j = 0;
+    //     // std::vector<int> sharePoint;
+    //     std::map<int, Eigen::VectorXi> sharePoint;
 
-                    //     // std::vector<int> sharePoint;
-                    //     std::map<int, Eigen::VectorXi> sharePoint;
+    // label:
+    //     for (j; j < 2; j++)
+    //     {
+    //         // std::cout<<"j: " << j << "\n";
 
-                    // label:
-                    //     for (j; j < 2; j++)
-                    //     {
-                    //         // std::cout<<"j: " << j << "\n";
+    //         indexB = patch_listOfFaces.at(j).get_bIndex();
 
-                    //         indexB = patch_listOfFaces.at(j).get_bIndex();
+    //         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexB) != listOfIndicies.end())
+    //         {
+    //             // v contains x
+    //             // j++;
+    //             //  std::cout << "indexB: " <<  indexB << "\n";
+    //             // goto label;
+    //         }
+    //         else
+    //         {
+    //             // std::cout << j << " B\n";
+    //             listOfIndicies.push_back(indexB);
+    //             Eigen::VectorXi resultVectorB = find_triangles(indexB, listOfFaces);
+    //             std::cout << "j: " << j << "   result B: \n"
+    //                     << resultVectorB << "\n";
+    //             sharePoint[j] = resultVectorB;
 
-                    //         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexB) != listOfIndicies.end())
-                    //         {
-                    //             // v contains x
-                    //             // j++;
-                    //             //  std::cout << "indexB: " <<  indexB << "\n";
-                    //             // goto label;
-                    //         }
-                    //         else
-                    //         {
-                    //             // std::cout << j << " B\n";
-                    //             listOfIndicies.push_back(indexB);
-                    //             Eigen::VectorXi resultVectorB = find_triangles(indexB, listOfFaces);
-                    //             std::cout << "j: " << j << "   result B: \n"
-                    //                     << resultVectorB << "\n";
-                    //             sharePoint[j] = resultVectorB;
+    //             for (int i = 0; i < resultVectorB.rows(); i++)
+    //             {
+    //                 // only want to adda  new patch if it hasnt already been included before
+    //                 Face theFace = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                 if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
+    //                 {
+    //                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                     // j++;
+    //                     // goto label;
+    //                     // break;
+    //                 }
+    //                 else
+    //                 {
+    //                     // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
+    //                     // {
+    //                     //     goto done;
+    //                     //     // break;
+    //                     // }
+    //                     if (1) // listOfZNormals.at(i) < 0)
+    //                     {
+    //                         patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                         patch_faceIndex++;
+    //                         std::cout << "B\tZ normal: " << listOfZNormals.at(i) << "\n";
+    //                         // std::cout << "result vector B i: " << resultVectorB(i) << "\n";
+    //                     }
+    //                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                     // patch_faceIndex++;
+    //                 }
+    //                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                 //  patch_faceIndex++;
+    //             }
+    //             j++;
+    //             goto label;
+    //         }
 
-                    //             for (int i = 0; i < resultVectorB.rows(); i++)
-                    //             {
-                    //                 // only want to adda  new patch if it hasnt already been included before
-                    //                 Face theFace = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    //                 if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
-                    //                 {
-                    //                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    //                     // j++;
-                    //                     // goto label;
-                    //                     // break;
-                    //                 }
-                    //                 else
-                    //                 {
-                    //                     // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
-                    //                     // {
-                    //                     //     goto done;
-                    //                     //     // break;
-                    //                     // }
-                    //                     if (1) // listOfZNormals.at(i) < 0)
-                    //                     {
-                    //                         patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    //                         patch_faceIndex++;
-                    //                         std::cout << "B\tZ normal: " << listOfZNormals.at(i) << "\n";
-                    //                         // std::cout << "result vector B i: " << resultVectorB(i) << "\n";
-                    //                     }
-                    //                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    //                     // patch_faceIndex++;
-                    //                 }
-                    //                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    //                 //  patch_faceIndex++;
-                    //             }
-                    //             j++;
-                    //             goto label;
-                    //         }
+    //         indexC = patch_listOfFaces.at(j).get_cIndex();
 
-                    //         indexC = patch_listOfFaces.at(j).get_cIndex();
+    //         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexC) != listOfIndicies.end())
+    //         {
+    //             // v contains x
+    //             // j++;
+    //             //  std::cout << "indexB: " <<  indexB << "\n";
+    //             // goto label;
+    //         }
+    //         else
+    //         {
+    //             // std::cout << j << " B\n";
+    //             listOfIndicies.push_back(indexC);
+    //             Eigen::VectorXi resultVectorC = find_triangles(indexC, listOfFaces);
+    //             std::cout << "j: " << j << "   result C: \n"
+    //                     << resultVectorC << "\n";
+    //             sharePoint[j] = resultVectorC;
 
-                    //         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexC) != listOfIndicies.end())
-                    //         {
-                    //             // v contains x
-                    //             // j++;
-                    //             //  std::cout << "indexB: " <<  indexB << "\n";
-                    //             // goto label;
-                    //         }
-                    //         else
-                    //         {
-                    //             // std::cout << j << " B\n";
-                    //             listOfIndicies.push_back(indexC);
-                    //             Eigen::VectorXi resultVectorC = find_triangles(indexC, listOfFaces);
-                    //             std::cout << "j: " << j << "   result C: \n"
-                    //                     << resultVectorC << "\n";
-                    //             sharePoint[j] = resultVectorC;
+    //             for (int i = 0; i < resultVectorC.rows(); i++)
+    //             {
+    //                 // only want to adda  new patch if it hasnt already been included before
+    //                 Face theFace = Face(0, listOfFaces.at(resultVectorC(i)).get_aIndex(), listOfFaces.at(resultVectorC(i)).get_bIndex(), listOfFaces.at(resultVectorC(i)).get_cIndex());
+    //                 if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
+    //                 {
+    //                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                     // j++;
+    //                     // goto label;
+    //                     // break;
+    //                 }
+    //                 else
+    //                 {
 
-                    //             for (int i = 0; i < resultVectorC.rows(); i++)
-                    //             {
-                    //                 // only want to adda  new patch if it hasnt already been included before
-                    //                 Face theFace = Face(0, listOfFaces.at(resultVectorC(i)).get_aIndex(), listOfFaces.at(resultVectorC(i)).get_bIndex(), listOfFaces.at(resultVectorC(i)).get_cIndex());
-                    //                 if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
-                    //                 {
-                    //                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    //                     // j++;
-                    //                     // goto label;
-                    //                     // break;
-                    //                 }
-                    //                 else
-                    //                 {
+    //                     // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
+    //                     // {
+    //                     //     goto done;
+    //                     //     // break;
+    //                     // }
+    //                     if (1) // listOfZNormals.at(i) < 0)
+    //                     {
+    //                         patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                         patch_faceIndex++;
+    //                         std::cout << "C\tZ normal: " << listOfZNormals.at(i) << "\n";
+    //                     }
+    //                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                     // patch_faceIndex++;
+    //                 }
+    //                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                 //  patch_faceIndex++;
+    //             }
+    //             j++;
+    //             goto label;
+    //         }
 
-                    //                     // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
-                    //                     // {
-                    //                     //     goto done;
-                    //                     //     // break;
-                    //                     // }
-                    //                     if (1) // listOfZNormals.at(i) < 0)
-                    //                     {
-                    //                         patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    //                         patch_faceIndex++;
-                    //                         std::cout << "C\tZ normal: " << listOfZNormals.at(i) << "\n";
-                    //                     }
-                    //                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    //                     // patch_faceIndex++;
-                    //                 }
-                    //                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    //                 //  patch_faceIndex++;
-                    //             }
-                    //             j++;
-                    //             goto label;
-                    //         }
+    //         indexA = patch_listOfFaces.at(j).get_aIndex();
 
-                    //         indexA = patch_listOfFaces.at(j).get_aIndex();
+    //         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexA) != listOfIndicies.end())
+    //         {
+    //             // v contains x
+    //             // j++;
+    //             //  std::cout << "indexB: " <<  indexB << "\n";
+    //             // goto label;
+    //         }
+    //         else
+    //         {
+    //             // std::cout << j << " B\n";
+    //             listOfIndicies.push_back(indexA);
+    //             Eigen::VectorXi resultVectorA = find_triangles(indexA, listOfFaces);
+    //             std::cout << "j: " << j << "   result A: \n"
+    //                     << resultVectorA << "\n";
+    //             sharePoint[j] = resultVectorA;
 
-                    //         if (std::find(listOfIndicies.begin(), listOfIndicies.end(), indexA) != listOfIndicies.end())
-                    //         {
-                    //             // v contains x
-                    //             // j++;
-                    //             //  std::cout << "indexB: " <<  indexB << "\n";
-                    //             // goto label;
-                    //         }
-                    //         else
-                    //         {
-                    //             // std::cout << j << " B\n";
-                    //             listOfIndicies.push_back(indexA);
-                    //             Eigen::VectorXi resultVectorA = find_triangles(indexA, listOfFaces);
-                    //             std::cout << "j: " << j << "   result A: \n"
-                    //                     << resultVectorA << "\n";
-                    //             sharePoint[j] = resultVectorA;
+    //             for (int i = 0; i < resultVectorA.rows(); i++)
+    //             {
+    //                 // only want to adda  new patch if it hasnt already been included before
+    //                 Face theFace = Face(0, listOfFaces.at(resultVectorA(i)).get_aIndex(), listOfFaces.at(resultVectorA(i)).get_bIndex(), listOfFaces.at(resultVectorA(i)).get_cIndex());
+    //                 if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
+    //                 {
+    //                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                     // j++;
+    //                     // goto label;
+    //                     // break;
+    //                 }
+    //                 else
+    //                 {
+    //                     // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
+    //                     // {
+    //                     //     goto done;
+    //                     //     // break;
+    //                     // }
+    //                     if (1) // listOfZNormals.at(i) < 0)
+    //                     {
+    //                         patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                         patch_faceIndex++;
+    //                         std::cout << "A\tZ normal: " << listOfZNormals.at(i) << "\n";
+    //                     }
+    //                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
+    //                     // patch_faceIndex++;
+    //                 }
+    //                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
+    //                 //  patch_faceIndex++;
+    //             }
+    //             j++;
+    //             goto label;
+    //         }
 
-                    //             for (int i = 0; i < resultVectorA.rows(); i++)
-                    //             {
-                    //                 // only want to adda  new patch if it hasnt already been included before
-                    //                 Face theFace = Face(0, listOfFaces.at(resultVectorA(i)).get_aIndex(), listOfFaces.at(resultVectorA(i)).get_bIndex(), listOfFaces.at(resultVectorA(i)).get_cIndex());
-                    //                 if (std::find(patch_listOfFaces.begin(), patch_listOfFaces.end(), theFace) != patch_listOfFaces.end())
-                    //                 {
-                    //                     // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    //                     // j++;
-                    //                     // goto label;
-                    //                     // break;
-                    //                 }
-                    //                 else
-                    //                 {
-                    //                     // if ((listOfPoints.at(theFace.get_aIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1) || (listOfPoints.at(theFace.get_bIndex()).get_z() > 1))
-                    //                     // {
-                    //                     //     goto done;
-                    //                     //     // break;
-                    //                     // }
-                    //                     if (1) // listOfZNormals.at(i) < 0)
-                    //                     {
-                    //                         patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    //                         patch_faceIndex++;
-                    //                         std::cout << "A\tZ normal: " << listOfZNormals.at(i) << "\n";
-                    //                     }
-                    //                     // patch_listOfFaces.at(patch_faceIndex) = theFace;
-                    //                     // patch_faceIndex++;
-                    //                 }
-                    //                 // patch_listOfFaces.at(patch_faceIndex) = Face(0, listOfFaces.at(resultVectorB(i)).get_aIndex(), listOfFaces.at(resultVectorB(i)).get_bIndex(), listOfFaces.at(resultVectorB(i)).get_cIndex());
-                    //                 //  patch_faceIndex++;
-                    //             }
-                    //             j++;
-                    //             goto label;
-                    //         }
+    //         // std::cout << "patch_faceIndex: " << patch_faceIndex << "\n";
+    //     }
 
-                    //         // std::cout << "patch_faceIndex: " << patch_faceIndex << "\n";
-                    //     }
+    // done:
 
-                    // done:
+    //     // testing shared point map
+    //     for (std::map<int, Eigen::VectorXi>::iterator miter = sharePoint.begin(); miter != sharePoint.end(); ++miter)
+    //     {
+    //         std::cout << "\nKey = " << (*miter).first << "\nvalue =\n"
+    //                 << (*miter).second;
+    //     }
+    //     std::cout << "\n\n";
+    //     //     //     // currently we now want to work with patch_list_of_faces not the normal one
+    //     //     //     // also as we havent removed triangles from this model, we havent generated the face matrix yet
+    //     //     //     // ideally we would have options that we could select, i.e. preprocess -Y/N , remove tri - Y/N, select patch - Y/N etc/
 
-                    //     // testing shared point map
-                    //     for (std::map<int, Eigen::VectorXi>::iterator miter = sharePoint.begin(); miter != sharePoint.end(); ++miter)
-                    //     {
-                    //         std::cout << "\nKey = " << (*miter).first << "\nvalue =\n"
-                    //                 << (*miter).second;
-                    //     }
-                    //     std::cout << "\n\n";
-                    //     //     //     // currently we now want to work with patch_list_of_faces not the normal one
-                    //     //     //     // also as we havent removed triangles from this model, we havent generated the face matrix yet
-                    //     //     //     // ideally we would have options that we could select, i.e. preprocess -Y/N , remove tri - Y/N, select patch - Y/N etc/
+    //     patch_listOfFaces.resize(patch_faceIndex);
 
-                    //     patch_listOfFaces.resize(patch_faceIndex);
-
-///#################    end of patch selection
-
-
+    /// #################    end of patch selection
 
     // /###############################map faces needed if no remove triangles
     for (int i = 0; i < listOfFaces.size(); i++)
@@ -304,249 +300,247 @@ int main()
     }
     outputTRIfile(listOfPoints, listOfFaces, "modifiedTRI.tri");
 
+    // ################################################
 
-//################################################
+    //     // outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
 
-        //     // outputTRIfile(listOfPoints, patch_listOfFaces, "Selectedpatch.tri");
+    //     // listOfFaces.swap(patch_listOfFaces);
+    //     listOfFaces = patch_listOfFaces;
+    //     // #################################
+    //     // we want to remove unused points from both the list of points
+    //     // go through list of faces and check indexes, create a list of indexes
+    //     // problem is size of this when we have non consecutive ordering,
 
-        //     // listOfFaces.swap(patch_listOfFaces);
-        //     listOfFaces = patch_listOfFaces;
-        //     // #################################
-        //     // we want to remove unused points from both the list of points
-        //     // go through list of faces and check indexes, create a list of indexes
-        //     // problem is size of this when we have non consecutive ordering,
+    //     std::vector<Point> temp_listOfPoints;
+    //     int aIndex, bIndex, cIndex;
+    //     int count = 0;
+    //     // generaous guess of size for points from faces, can resize later
+    //     // temp_listOfPoints.resize(listOfFaces.size()*3);
 
-        //     std::vector<Point> temp_listOfPoints;
-        //     int aIndex, bIndex, cIndex;
-        //     int count = 0;
-        //     // generaous guess of size for points from faces, can resize later
-        //     // temp_listOfPoints.resize(listOfFaces.size()*3);
+    //     for (int i = 0; i < listOfFaces.size(); i++)
+    //     {
+    //         aIndex = listOfFaces.at(i).get_aIndex();
+    //         bIndex = listOfFaces.at(i).get_bIndex();
+    //         cIndex = listOfFaces.at(i).get_cIndex();
 
-        //     for (int i = 0; i < listOfFaces.size(); i++)
-        //     {
-        //         aIndex = listOfFaces.at(i).get_aIndex();
-        //         bIndex = listOfFaces.at(i).get_bIndex();
-        //         cIndex = listOfFaces.at(i).get_cIndex();
+    //         if ((std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(aIndex)) != temp_listOfPoints.end()))
+    //         {
+    //             //     temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_aIndex()));
+    //             //     // std::cout << "i: " << i << "\taindex: " << listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_index() << "\n";
+    //             //     count++;
+    //         }
+    //         else
+    //         {
+    //             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_aIndex()));
+    //             // std::cout << "i: " << i << "\taindex: " << listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_index() << "\n";
+    //             count++;
+    //         }
+    //         if ((std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(bIndex)) != temp_listOfPoints.end()))
+    //         {
+    //             // temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_bIndex()));
+    //             // // std::cout << "i: " << i << "\tbindex: " << listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_index() << "\n";
+    //             // count++;
+    //         }
+    //         else
+    //         {
+    //             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_bIndex()));
+    //             // std::cout << "i: " << i << "\tbindex: " << listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_index() << "\n";
+    //             count++;
+    //         }
+    //         if ((std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(cIndex)) != temp_listOfPoints.end()))
+    //         {
+    //             // temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_cIndex()));
+    //             // // std::cout << "i: " << i << "\tcindex: " << listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_index() << "\n";
+    //             // count++;
+    //         }
+    //         else
+    //         {
+    //             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_cIndex()));
+    //             // std::cout << "i: " << i << "\tcindex: " << listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_index() << "\n";
+    //             count++;
+    //         }
+    //     }
+    //     // temp_listOfPoints.resize(count);
+    //     std::cout << "temp size: " << temp_listOfPoints.size() << "\n";
 
-        //         if ((std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(aIndex)) != temp_listOfPoints.end()))
-        //         {
-        //             //     temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_aIndex()));
-        //             //     // std::cout << "i: " << i << "\taindex: " << listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_index() << "\n";
-        //             //     count++;
-        //         }
-        //         else
-        //         {
-        //             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_aIndex()));
-        //             // std::cout << "i: " << i << "\taindex: " << listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_index() << "\n";
-        //             count++;
-        //         }
-        //         if ((std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(bIndex)) != temp_listOfPoints.end()))
-        //         {
-        //             // temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_bIndex()));
-        //             // // std::cout << "i: " << i << "\tbindex: " << listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_index() << "\n";
-        //             // count++;
-        //         }
-        //         else
-        //         {
-        //             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_bIndex()));
-        //             // std::cout << "i: " << i << "\tbindex: " << listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_index() << "\n";
-        //             count++;
-        //         }
-        //         if ((std::find(temp_listOfPoints.begin(), temp_listOfPoints.end(), listOfPoints.at(cIndex)) != temp_listOfPoints.end()))
-        //         {
-        //             // temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_cIndex()));
-        //             // // std::cout << "i: " << i << "\tcindex: " << listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_index() << "\n";
-        //             // count++;
-        //         }
-        //         else
-        //         {
-        //             temp_listOfPoints.push_back(listOfPoints.at(listOfFaces.at(i).get_cIndex()));
-        //             // std::cout << "i: " << i << "\tcindex: " << listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_index() << "\n";
-        //             count++;
-        //         }
-        //     }
-        //     // temp_listOfPoints.resize(count);
-        //     std::cout << "temp size: " << temp_listOfPoints.size() << "\n";
+    //     for (int i = 0; i < temp_listOfPoints.size(); i++)
+    //     {
+    //         std::cout << temp_listOfPoints.at(i).get_index() << " " << temp_listOfPoints.at(i).get_x() << " "
+    //                 << temp_listOfPoints.at(i).get_y() << " "
+    //                 << temp_listOfPoints.at(i).get_z() << "\n";
+    //     }
 
-        //     for (int i = 0; i < temp_listOfPoints.size(); i++)
-        //     {
-        //         std::cout << temp_listOfPoints.at(i).get_index() << " " << temp_listOfPoints.at(i).get_x() << " "
-        //                 << temp_listOfPoints.at(i).get_y() << " "
-        //                 << temp_listOfPoints.at(i).get_z() << "\n";
-        //     }
+    //     std::cout << "List of point size  (before): " << listOfPoints.size() << "\n";
+    //     // listOfPoints.swap(temp_listOfPoints);
+    //     // listOfPoints = temp_listOfPoints;
 
-        //     std::cout << "List of point size  (before): " << listOfPoints.size() << "\n";
-        //     // listOfPoints.swap(temp_listOfPoints);
-        //     // listOfPoints = temp_listOfPoints;
+    //     std::cout << "List of point size  (after): " << listOfPoints.size() << "\n";
 
-        //     std::cout << "List of point size  (after): " << listOfPoints.size() << "\n";
+    //     // for(int i=0; i<listOfFaces.size(); i++)
 
-        //     // for(int i=0; i<listOfFaces.size(); i++)
+    //     // for(int i=0; i<temp_listOfPoints.size();i++)
+    //     // {
+    //     //     std::cout << "i: " << temp_listOfPoints.
+    //     // }
 
-        //     // for(int i=0; i<temp_listOfPoints.size();i++)
-        //     // {
-        //     //     std::cout << "i: " << temp_listOfPoints.
-        //     // }
+    //     // for(int i=0; i<10; i++)  //testing swap
+    //     // {
+    //     //     std::cout << "i: " << i << " lof: " << listOfFaces.at(i).get_bIndex() << "\n";
+    //     // }
 
-        //     // for(int i=0; i<10; i++)  //testing swap
-        //     // {
-        //     //     std::cout << "i: " << i << " lof: " << listOfFaces.at(i).get_bIndex() << "\n";
-        //     // }
+    //     // #################prep face matrix after patch selection
+    //     for (int i = 0; i < listOfFaces.size(); i++)
+    //     {
+    //         faces[i][0] = listOfFaces.at(i).get_aIndex();
+    //         faces[i][1] = listOfFaces.at(i).get_bIndex();
+    //         faces[i][2] = listOfFaces.at(i).get_cIndex();
+    //     }
 
-        //     // #################prep face matrix after patch selection
-        //     for (int i = 0; i < listOfFaces.size(); i++)
-        //     {
-        //         faces[i][0] = listOfFaces.at(i).get_aIndex();
-        //         faces[i][1] = listOfFaces.at(i).get_bIndex();
-        //         faces[i][2] = listOfFaces.at(i).get_cIndex();
-        //     }
+    //     faces.resize(listOfFaces.size(), std::vector<int>(3));
+    //     faceMatrix.resize(listOfFaces.size(), 3);
 
-        //     faces.resize(listOfFaces.size(), std::vector<int>(3));
-        //     faceMatrix.resize(listOfFaces.size(), 3);
+    //     for (int i = 0; i < listOfFaces.size(); i++)
+    //     {
+    //         faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
+    //     }
 
-        //     for (int i = 0; i < listOfFaces.size(); i++)
-        //     {
-        //         faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
-        //     }
-        
-        //     // std::map<int, std::vector<int>> neighbours;
-        //     std::vector<Eigen::VectorXi> theResults;
+    //     // std::map<int, std::vector<int>> neighbours;
+    //     std::vector<Eigen::VectorXi> theResults;
 
-        //     std::vector<int> simulatedChange = {};
+    //     std::vector<int> simulatedChange = {};
 
-        //     for (std::map<int, Eigen::VectorXi>::iterator miter = sharePoint.begin(); miter != sharePoint.end(); ++miter)
-        //     {
-        //         std::cout << "\nKey = " << (*miter).first << "\nvalue =\n"
-        //                 << (*miter).second;
-        //         // std::cout<< "\nTest access first " << (*miter).second(1)  << "\n";
-        //         Eigen::VectorXi theResult = (*miter).second;
-        //         theResults.push_back(theResult);
-        //         // for(auto sharedPoint:theResult)
-        //         // {
-        //         //     std::cout < "A shared point " << sharedPoint << "\n";
-        //         // }
-        //     }
+    //     for (std::map<int, Eigen::VectorXi>::iterator miter = sharePoint.begin(); miter != sharePoint.end(); ++miter)
+    //     {
+    //         std::cout << "\nKey = " << (*miter).first << "\nvalue =\n"
+    //                 << (*miter).second;
+    //         // std::cout<< "\nTest access first " << (*miter).second(1)  << "\n";
+    //         Eigen::VectorXi theResult = (*miter).second;
+    //         theResults.push_back(theResult);
+    //         // for(auto sharedPoint:theResult)
+    //         // {
+    //         //     std::cout < "A shared point " << sharedPoint << "\n";
+    //         // }
+    //     }
 
-        
-        //     std::vector<Face> winding_listOfFaces;
+    //     std::vector<Face> winding_listOfFaces;
 
-        //     // make all triangles follow the winding direction of triangle 0
-        //     // the actual order doesnt matter as ling as mesh is consistent
+    //     // make all triangles follow the winding direction of triangle 0
+    //     // the actual order doesnt matter as ling as mesh is consistent
 
-        //     // add a beginning triangle to list
-        //     // find adjacent triangles to current triangle, check windinding direction. if it needs to be flipped, do so and add to list
+    //     // add a beginning triangle to list
+    //     // find adjacent triangles to current triangle, check windinding direction. if it needs to be flipped, do so and add to list
 
-        //     winding_listOfFaces.push_back(listOfFaces.at(0)); // seed
-        //     listOfFaces.at(0).set_winding(1);
+    //     winding_listOfFaces.push_back(listOfFaces.at(0)); // seed
+    //     listOfFaces.at(0).set_winding(1);
 
-        //     std::cout << "\n\nPre any changes to ordering\n";
-        //     for (int i = 0; i < listOfFaces.size(); i++)
-        //     {
-        //         std::cout << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << "\twinding " << listOfFaces.at(i).get_winding() << "\n";
-        //     }
-        //     int iterations = 0;
-        // again:
-        //     // #####################
-        //     Edge anotherSharedEdge(-1, -1, -1);
-        //     Edge anotherFailEdge(-1, -1, -1);
-        //     std::map<int, std::vector<int>> neighbours;
-        //     std::cout << "\nBrute\n";
-        //     std::vector<int> shared; // = {8,7,6};
-        //     // shared.resize(1);
-        //     int indexShared_secondTri = -1;
-        //     int indexShared_firstTri = -1;
-        //     std::vector<Face> new_listOfFaces;
-        //     // new_listOfFaces.push_back(listOfFaces.at(0)); // seed
-        //     new_listOfFaces = listOfFaces;
+    //     std::cout << "\n\nPre any changes to ordering\n";
+    //     for (int i = 0; i < listOfFaces.size(); i++)
+    //     {
+    //         std::cout << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << "\twinding " << listOfFaces.at(i).get_winding() << "\n";
+    //     }
+    //     int iterations = 0;
+    // again:
+    //     // #####################
+    //     Edge anotherSharedEdge(-1, -1, -1);
+    //     Edge anotherFailEdge(-1, -1, -1);
+    //     std::map<int, std::vector<int>> neighbours;
+    //     std::cout << "\nBrute\n";
+    //     std::vector<int> shared; // = {8,7,6};
+    //     // shared.resize(1);
+    //     int indexShared_secondTri = -1;
+    //     int indexShared_firstTri = -1;
+    //     std::vector<Face> new_listOfFaces;
+    //     // new_listOfFaces.push_back(listOfFaces.at(0)); // seed
+    //     new_listOfFaces = listOfFaces;
 
-        //     std::vector<int> visitedBefore;
-        //     // visitedBefore.push_back(0);
+    //     std::vector<int> visitedBefore;
+    //     // visitedBefore.push_back(0);
 
-        //     std::vector<std::pair<int, int>> thePairs;
+    //     std::vector<std::pair<int, int>> thePairs;
 
-        //     std::cout << "\n\n new list of faces\n";
-        //     for (int i = 0; i < new_listOfFaces.size(); i++)
-        //     {
-        //         std::cout << i << " " << new_listOfFaces.at(i).get_aIndex() << " " << new_listOfFaces.at(i).get_bIndex() << " " << new_listOfFaces.at(i).get_cIndex() << "\twinding " << new_listOfFaces.at(i).get_winding() << "\n";
-        //     }
+    //     std::cout << "\n\n new list of faces\n";
+    //     for (int i = 0; i < new_listOfFaces.size(); i++)
+    //     {
+    //         std::cout << i << " " << new_listOfFaces.at(i).get_aIndex() << " " << new_listOfFaces.at(i).get_bIndex() << " " << new_listOfFaces.at(i).get_cIndex() << "\twinding " << new_listOfFaces.at(i).get_winding() << "\n";
+    //     }
 
-        //     for (int i = 0; i < listOfFaces.size(); i++)
-        //     {
-        //         std::vector<int> shared;
-        //         for (int j = 0; j < listOfFaces.size(); j++)
-        //         {
-        //             if ((compareEdges(listOfFaces.at(i).get_faceEdges(), listOfFaces.at(j).get_faceEdges())) && i != j)
-        //             {
+    //     for (int i = 0; i < listOfFaces.size(); i++)
+    //     {
+    //         std::vector<int> shared;
+    //         for (int j = 0; j < listOfFaces.size(); j++)
+    //         {
+    //             if ((compareEdges(listOfFaces.at(i).get_faceEdges(), listOfFaces.at(j).get_faceEdges())) && i != j)
+    //             {
 
-        //                 shared.push_back(j);
-        //                 anotherSharedEdge = whichEdgeShared(listOfFaces.at(i).get_faceEdges(), listOfFaces.at(j).get_faceEdges(), indexShared_secondTri, indexShared_firstTri);
+    //                 shared.push_back(j);
+    //                 anotherSharedEdge = whichEdgeShared(listOfFaces.at(i).get_faceEdges(), listOfFaces.at(j).get_faceEdges(), indexShared_secondTri, indexShared_firstTri);
 
-        //                 if (listOfFaces.at(i).get_faceEdges().at(indexShared_firstTri).get_index1() == listOfFaces.at(j).get_faceEdges().at(indexShared_secondTri).get_index1() &&
-        //                     listOfFaces.at(i).get_faceEdges().at(indexShared_firstTri).get_index2() == listOfFaces.at(j).get_faceEdges().at(indexShared_secondTri).get_index2())
-        //                 {
+    //                 if (listOfFaces.at(i).get_faceEdges().at(indexShared_firstTri).get_index1() == listOfFaces.at(j).get_faceEdges().at(indexShared_secondTri).get_index1() &&
+    //                     listOfFaces.at(i).get_faceEdges().at(indexShared_firstTri).get_index2() == listOfFaces.at(j).get_faceEdges().at(indexShared_secondTri).get_index2())
+    //                 {
 
-        //                     // if(std::find(visitedBefore.begin(), visitedBefore.end(), j ) != visitedBefore.end()) {
-        //                     //     // change the winding of the latter
-        //                     //     std::cout << "NEW!!\t";
-        //                     //     new_listOfFaces.at(j) = Face(j, listOfFaces.at(j).get_cIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_aIndex());
-        //                     // }
-        //                     // visitedBefore.push_back(j);
-        //                     std::pair<int, int> current = {i, j};
+    //                     // if(std::find(visitedBefore.begin(), visitedBefore.end(), j ) != visitedBefore.end()) {
+    //                     //     // change the winding of the latter
+    //                     //     std::cout << "NEW!!\t";
+    //                     //     new_listOfFaces.at(j) = Face(j, listOfFaces.at(j).get_cIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_aIndex());
+    //                     // }
+    //                     // visitedBefore.push_back(j);
+    //                     std::pair<int, int> current = {i, j};
 
-        //                     if (std::find(thePairs.begin(), thePairs.end(), current) != thePairs.end())
-        //                     {
-        //                     }
-        //                     else
-        //                     {
-        //                         std::cout << "New combo";
-        //                         if (iterations == 0)
-        //                         {
-        //                             new_listOfFaces.at(j) = Face(j, listOfFaces.at(j).get_cIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_aIndex());
-        //                             new_listOfFaces.at(j).set_winding(1);
-        //                         }
-        //                         if (iterations == 1)
-        //                         {
-        //                             new_listOfFaces.at(j) = Face(j, listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_aIndex(), listOfFaces.at(j).get_cIndex());
-        //                             new_listOfFaces.at(j).set_winding(1);
-        //                         }
-        //                         thePairs.push_back(std::make_pair(i, j));
-        //                         thePairs.push_back(std::make_pair(j, i)); // and the reverse ordering of the pair
-        //                     }
+    //                     if (std::find(thePairs.begin(), thePairs.end(), current) != thePairs.end())
+    //                     {
+    //                     }
+    //                     else
+    //                     {
+    //                         std::cout << "New combo";
+    //                         if (iterations == 0)
+    //                         {
+    //                             new_listOfFaces.at(j) = Face(j, listOfFaces.at(j).get_cIndex(), listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_aIndex());
+    //                             new_listOfFaces.at(j).set_winding(1);
+    //                         }
+    //                         if (iterations == 1)
+    //                         {
+    //                             new_listOfFaces.at(j) = Face(j, listOfFaces.at(j).get_bIndex(), listOfFaces.at(j).get_aIndex(), listOfFaces.at(j).get_cIndex());
+    //                             new_listOfFaces.at(j).set_winding(1);
+    //                         }
+    //                         thePairs.push_back(std::make_pair(i, j));
+    //                         thePairs.push_back(std::make_pair(j, i)); // and the reverse ordering of the pair
+    //                     }
 
-        //                     std::cout << "\n################Triangle " << i << " and triangle " << j << " share an edge\t\t";
-        //                     std::cout << "################Edge: " << anotherSharedEdge.get_index1() << ", " << anotherSharedEdge.get_index2() << "\tIndex first: " << indexShared_firstTri << " second: " << indexShared_secondTri << "\n\n";
-        //                 }
-        //                 else
-        //                 {
-        //                     std::cout << "Triangle " << i << " and triangle " << j << " share an edge\t\t";
-        //                     std::cout << "Edge: " << anotherSharedEdge.get_index1() << ", " << anotherSharedEdge.get_index2() << "\tIndex first: " << indexShared_firstTri << " second: " << indexShared_secondTri << "\n";
-        //                 }
-        //                 // listOfFaces.at(i).get_faceEdges().at(indexShared).
-        //                 // neighbours.insert({i, shared});
-        //             }
-        //         }
-        //         neighbours.insert({i, shared});
-        //         // shared.clear();
-        //         //  shared.resize(1);
-        //     }
+    //                     std::cout << "\n################Triangle " << i << " and triangle " << j << " share an edge\t\t";
+    //                     std::cout << "################Edge: " << anotherSharedEdge.get_index1() << ", " << anotherSharedEdge.get_index2() << "\tIndex first: " << indexShared_firstTri << " second: " << indexShared_secondTri << "\n\n";
+    //                 }
+    //                 else
+    //                 {
+    //                     std::cout << "Triangle " << i << " and triangle " << j << " share an edge\t\t";
+    //                     std::cout << "Edge: " << anotherSharedEdge.get_index1() << ", " << anotherSharedEdge.get_index2() << "\tIndex first: " << indexShared_firstTri << " second: " << indexShared_secondTri << "\n";
+    //                 }
+    //                 // listOfFaces.at(i).get_faceEdges().at(indexShared).
+    //                 // neighbours.insert({i, shared});
+    //             }
+    //         }
+    //         neighbours.insert({i, shared});
+    //         // shared.clear();
+    //         //  shared.resize(1);
+    //     }
 
-        //     std::cout << "\n\n update new list of faces\n";
-        //     for (int i = 0; i < new_listOfFaces.size(); i++)
-        //     {
-        //         std::cout << i << " " << new_listOfFaces.at(i).get_aIndex() << " " << new_listOfFaces.at(i).get_bIndex() << " " << new_listOfFaces.at(i).get_cIndex() << "\twinding " << new_listOfFaces.at(i).get_winding() << "\n";
-        //     }
+    //     std::cout << "\n\n update new list of faces\n";
+    //     for (int i = 0; i < new_listOfFaces.size(); i++)
+    //     {
+    //         std::cout << i << " " << new_listOfFaces.at(i).get_aIndex() << " " << new_listOfFaces.at(i).get_bIndex() << " " << new_listOfFaces.at(i).get_cIndex() << "\twinding " << new_listOfFaces.at(i).get_winding() << "\n";
+    //     }
 
-        //     outputTRIfile(listOfPoints, new_listOfFaces, "firstpostBrute.tri");
+    //     outputTRIfile(listOfPoints, new_listOfFaces, "firstpostBrute.tri");
 
-        //     listOfFaces = new_listOfFaces;
-        //     if (iterations == 0)
-        //     {
-        //         std::cout << "first iteration complete\n";
-        //         outputTRIfile(listOfPoints, new_listOfFaces, "secondpostBrute.tri");
-        //         iterations++;
-        //         goto again;
-        //     }
-//############################################
+    //     listOfFaces = new_listOfFaces;
+    //     if (iterations == 0)
+    //     {
+    //         std::cout << "first iteration complete\n";
+    //         outputTRIfile(listOfPoints, new_listOfFaces, "secondpostBrute.tri");
+    //         iterations++;
+    //         goto again;
+    //     }
+    // ############################################
 
     // rather than having to search all triangles
     // we only need to search triangles we know that share a point with
@@ -639,149 +633,26 @@ int main()
 
     outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
 
+    // determing output triangle areas
+    std::vector<double> outputAreas(listOfAreas);
+    std::vector<Point> outputPoints;
+    int scaleFlag = 0;
+
+    postProcess(outputAreas, listOfAreas, outputPoints, listOfFaces, u_coords, v_coords, faceMatrix, listOfPoints, pinnedVerticies, scaleFlag);
+
     std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
     std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
 
     return 0;
 }
 
-bool calcTriangleAreas(std::vector<Point> &listOfPoints, // make const - need to alter classes of Point and face
-                       std::vector<Face> &listOfFaces,
-                       std::vector<double> &listOfAreas)
 
-{
-    // loop through the list of faces, for each face get the points, then use these in calc
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        // listOfAreas.at(i) = (x1 * y2 - y1 * x2) + (x2 * y3 - y2 * x3) + (x3 * y1 - y3 * x1);
-        listOfAreas.at(i) = (listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() -
-                             listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x()) +
-                            (listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() -
-                             listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x()) +
-                            (listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_x() * listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y() -
-                             listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y() * listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_x());
-    }
-    return true;
-}
 
-bool compare_double(double first, double second, double epsilon)
 
-{
-    if (fabs(first - second) < epsilon)
-        return true; // they are same
-    return false;    // they are not same
-}
 
-bool rotateModel(std::vector<Point> &listOfPoints,
-                 Eigen::MatrixXd &pointMatrix,
-                 std::vector<std::vector<double>> &points,
-                 char axis)
-{
-    for (int i = 0; i < listOfPoints.size(); i++)
-    {
-        pointMatrix.row(i) = Eigen::VectorXd::Map(&points[i][0], points[i].size());
-    }
-    // std::cout << pointMatrix << "\n\n";
 
-    // Eigen::AngleAxisd rotate(3.14159, Eigen::Vector3d(0, 2.15, 0)); // M_PI
-    // set all to zero, axis switch_case selects what to change
-    Eigen::AngleAxisd pitchAngle(0, Eigen::Vector3d::UnitX());
-    Eigen::AngleAxisd yawAngle(0, Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd rollAngle(0, Eigen::Vector3d::UnitZ());
 
-    switch (axis)
-    {
-    case 'x':
-        // pitchAngle.angle() = 3.14159 / 2;
-        pitchAngle.angle() = (3.14159 / 2) - 0.35; // want to rotate wing less so its 'flatter'
-        break;
 
-    case 'y':
-        yawAngle.angle() = 3.14159 / 2;
-        break;
-
-    case 'z':
-        rollAngle.angle() = 3.14159 / 2;
-        break;
-    }
-
-    Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-
-    Eigen::Matrix3d rotationMatrix = q.matrix();
-
-    pointMatrix = pointMatrix * rotationMatrix;
-
-    // loop through list of points and change the values, leave the indexes
-    // gonna require set functions for point
-    for (int i = 0; i < listOfPoints.size(); i++) // update list of points after rotation
-    {
-        listOfPoints.at(i).set_x(pointMatrix(i, 0));
-        listOfPoints.at(i).set_y(pointMatrix(i, 1));
-        listOfPoints.at(i).set_z(pointMatrix(i, 2));
-    }
-
-    return true;
-}
-
-bool removeTriangles(std::vector<Point> &listOfPoints,
-                     std::vector<Face> &listOfFaces,
-                     std::vector<std::vector<int>> &faces,
-                     Eigen::MatrixXi &faceMatrix)
-{
-    // remove triangles,
-    // listofpoints, listoffaces, faces
-    // return numelementsadded value
-
-    double a, b, c;
-    int listOfFacesSizeBefore = listOfFaces.size();
-    int numElementsAdded = 0;
-    int rowCounter = 0;
-    double epsilon = 0.0001f;
-
-    for (int i = 0; i < listOfFacesSizeBefore; i++)
-    {
-        a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_z();
-        b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_z();
-        c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_z();
-
-        // std::cout << "a: " << a << "\n";
-        //  For radome - its y coordinate for bottom faces
-        //  a = listOfPoints.at(listOfFaces.at(i).get_aIndex()).get_y();
-        //  b = listOfPoints.at(listOfFaces.at(i).get_bIndex()).get_y();
-        //  c = listOfPoints.at(listOfFaces.at(i).get_cIndex()).get_y();
-
-        // copy elements that are NOT part of the base into a new list which will now use
-        // if (!((a == b) && (b == c)))    //comparing doubles can be problematic, use function
-        if (!(compare_double(a, b, epsilon) && compare_double(b, c, epsilon))) //&& a < -2.14 && b < -2.14 && c < -2.14))
-        {
-            // std::cout << "Triangle: " << i << " is not on x-y plane\n";
-            //   listOfFaces.erase(listOfFaces.begin() + i);
-            //  numElementsRemoved++;
-            numElementsAdded++;
-
-            // newListOfFaces.at(rowCounter) = Face(i, listOfFaces.at(i).get_aIndex(),listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
-            listOfFaces.at(rowCounter) = Face(i, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
-
-            faces[rowCounter][0] = listOfFaces.at(i).get_aIndex();
-            faces[rowCounter][1] = listOfFaces.at(i).get_bIndex();
-            faces[rowCounter][2] = listOfFaces.at(i).get_cIndex();
-
-            rowCounter++;
-        }
-    }
-
-    listOfFaces.resize(numElementsAdded);
-    faces.resize(numElementsAdded, std::vector<int>(3)); // always 3  verticies per row
-    faceMatrix.resize(listOfFaces.size(), 3);
-
-    // Eigen::MatrixXi faceMatrix(listOfFaces.size(), 3);
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
-        faceMatrix.row(i) = Eigen::VectorXi::Map(&faces[i][0], faces[i].size());
-    }
-
-    return true;
-}
 
 bool prepMatricies(std::vector<Point> &listOfPoints,
                    std::vector<Face> &listOfFaces,
@@ -1067,7 +938,6 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
                 Xc = vAC.norm() * cos(angle_between_AB_AC); // vAC_mag   vAC_norm.norm()
                 Yc = vAC.norm() * sin(angle_between_AB_AC); // vAC_norm.norm()
 
-
                 // real part Xc-Xb   - note these are from wight eauation not top graident in triangle equation
                 A_Mf1.insert(i, j) = (Xb - Xa) / sqrt(abs(listOfAreas.at(i)));
 
@@ -1337,82 +1207,7 @@ bool prepSolutionOutput(Eigen::VectorXd &u_coords,
     return true;
 }
 
-Eigen::VectorXi find_triangles(int indexWereAfter,
-                               std::vector<Face> &listOfFaces)
-{
-    Eigen::VectorXi indexVector(2, 1); // assuming at least two triangles include a given point
-    int count = 0;
-    for (int i = 0; i < listOfFaces.size(); i++)
-    {
 
-        if (listOfFaces.at(i).get_aIndex() == indexWereAfter ||
-            listOfFaces.at(i).get_bIndex() == indexWereAfter ||
-            listOfFaces.at(i).get_cIndex() == indexWereAfter)
-        { // here 0 is the index of the point (0,0,0)
-          // std::cout << "Triangle: " << i << " contains index " << indexWereAfter << "\n";
-            // patch_listOfFaces.at(patch_faceIndex) = Face(patch_faceIndex, listOfFaces.at(i).get_aIndex(), listOfFaces.at(i).get_bIndex(), listOfFaces.at(i).get_cIndex());
-            // patch_faceIndex++;
-            if (count >= indexVector.rows())
-            {
-                indexVector.conservativeResize(count + 1, 1); // conservative resize to not lose data during reallocation
-            }
-            indexVector(count) = i;
-            count++;
-        }
-    }
-    // indexVector.conservativeResize();
-    return indexVector;
-}
 
-bool compareEdges(std::vector<Edge> &first, std::vector<Edge> &second)
-{
-    // return std::find_first_of(first.begin(), first.end(),
-    //                           second.begin(), second.end()) != first.end();
 
-    if (std::find(first.begin(), first.end(), second.at(0)) != first.end() ||
-        std::find(first.begin(), first.end(), second.at(1)) != first.end() ||
-        std::find(first.begin(), first.end(), second.at(2)) != first.end())
-    {
-        return true;
-    }
-    return false;
-}
 
-Edge whichEdgeShared(std::vector<Edge> &first, std::vector<Edge> &second, int &indexOfSharedEdge_second, int &indexOfSharedEdge_first)
-{
-    std::vector<Edge>::iterator it0;
-
-    it0 = std::find(first.begin(), first.end(), second.at(0));
-
-    if (it0 != first.end())
-    {
-        indexOfSharedEdge_second = 0;
-        indexOfSharedEdge_first = it0 - first.begin();
-        return second.at(0);
-    }
-
-    std::vector<Edge>::iterator it1; // reset/clear the iterator and reuse ? TODO
-    it1 = std::find(first.begin(), first.end(), second.at(1));
-    if (it1 != first.end())
-    {
-        indexOfSharedEdge_second = 1;
-        indexOfSharedEdge_first = it1 - first.begin();
-        return second.at(1);
-    }
-
-    std::vector<Edge>::iterator it2; // reset/clear the iterator and reuse ? TODO
-    it2 = std::find(first.begin(), first.end(), second.at(2));
-    if (it2 != first.end())
-    {
-        indexOfSharedEdge_second = 2;
-        indexOfSharedEdge_first = it2 - first.begin();
-        return second.at(2);
-    }
-
-    else
-    {
-        indexOfSharedEdge_second = -1;
-        indexOfSharedEdge_first = -1;
-        return Edge(-1, -1, -1);
-    }
-}
