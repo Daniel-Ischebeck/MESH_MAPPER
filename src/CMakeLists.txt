@@ -16,7 +16,7 @@ add_library(model Point.cpp Face.cpp Edge.cpp FileIO.cpp processing.cpp)
 list(APPEND CMAKE_MODULE_PATH "C:/Users/danie/Downloads/eigen-3.4.0/eigen-3.4.0/cmake")
 find_package (Eigen3 REQUIRED)
 
-add_executable(reader TRI_reader.cpp)
+add_executable(reader dense_TRI_mapper.cpp)
 
 
 target_link_libraries(model Eigen3::Eigen)
