@@ -26,4 +26,6 @@ bool outputUVfile(std::vector<Face> &listOfFaces,
                   Eigen::MatrixXi &faceMatrix,
                   Eigen::VectorXd &u_coords,
                   Eigen::VectorXd &v_coords,
-                  std::string filePath); // testing face matrix and witing it to file
+                  std::string filePath,
+                  int attributeFlag,
+                  std::vector<double> &results); 

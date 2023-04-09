@@ -4,7 +4,9 @@ bool outputUVfile(std::vector<Face> &listOfFaces,
                   Eigen::MatrixXi &faceMatrix,
                   Eigen::VectorXd &u_coords,
                   Eigen::VectorXd &v_coords,
-                  std::string filePath) // testing face matrix
+                  std::string filePath,
+                  int attributeFlag,
+                  std::vector<double> &results) // testing face matrix
 {
 
     std::ofstream outputUVfile;
@@ -16,11 +18,22 @@ bool outputUVfile(std::vector<Face> &listOfFaces,
         outputUVfile << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
     }
 
-    outputUVfile << listOfFaces.size() << " 3 0\n"; // these attribute values may change later
-    // outputUVfile << faceMatrix << "\n";
-    for (int i = 0; i < listOfFaces.size(); i++)
+    if (attributeFlag == 0)
     {
-        outputUVfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << "\n";
+        outputUVfile << listOfFaces.size() << " 3 0\n"; // these attribute values may change later
+        // outputUVfile << faceMatrix << "\n";
+        for (int i = 0; i < listOfFaces.size(); i++)
+        {
+            outputUVfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << "\n";
+        }
+    }
+    if (attributeFlag == 1)
+    {
+        outputUVfile << listOfFaces.size() << " 3 1\n"; // these attribute values may change later
+        for (int i = 0; i < listOfFaces.size(); i++)
+        {
+            outputUVfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << " " << results.at(i)<<  "\n";
+        }
     }
 
     outputUVfile << "Random\n";
@@ -110,7 +123,9 @@ bool readFile(std::vector<Point> &listOfPoints,
                 // formatting for points
                 // std::cout << "**Line: " << currentLine << "\n";
                 // std::cout << _pointIndex << " " << _x << " " << _y << " " << _z << "\n";
+
                 listOfPoints.at(_pointIndex) = Point(_pointIndex, _x, _y, _z);
+                // listOfPoints.at(pointIndexCounter) = Point(pointIndexCounter, _x, _y, _z);
 
                 points[pointIndexCounter][0] = _x;
                 points[pointIndexCounter][1] = _y;

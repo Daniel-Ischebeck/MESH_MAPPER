@@ -12,9 +12,9 @@ int main()
 
     std::vector<Point> listOfPoints;
     std::vector<Face> listOfFaces;
-    std::string filePath = "../files/indexed_straight_dome.tri";
+    // std::string filePath = "../files/indexed_straight_dome.tri";
     // std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
-    // std::string filePath = "hex_mesh.tri";
+    std::string filePath = "actual_part_sphere.tri";  //hex_mesh
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
@@ -631,28 +631,27 @@ int main()
 
     prepSolutionOutput(u_coords, v_coords, pinnedVerticies, solution, pinnedUV, listOfPoints.size());
 
-    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri");
+    
 
     // determing output triangle areas
-    std::vector<double> outputAreas(listOfAreas);
+    std::vector<double> outputAreas(listOfAreas.size());
     std::vector<Point> outputPoints;
-    int scaleFlag = 0;
+    std::vector<double> results(listOfAreas.size());
+    
+    int attributeFlag = 0;
+    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri", attributeFlag,results);
 
-    postProcess(outputAreas, listOfAreas, outputPoints, listOfFaces, u_coords, v_coords, faceMatrix, listOfPoints, pinnedVerticies, scaleFlag);
+    int scaleFlag = 1;
+    postProcess(outputAreas, listOfAreas, outputPoints, listOfFaces, u_coords, v_coords, faceMatrix, listOfPoints, pinnedVerticies, results, scaleFlag);
+
+    attributeFlag=1;
+    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "withAttributes_output_UV.tri", attributeFlag, results);
 
     std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();
     std::cout << "Time for overall execution (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(overallEnd - overallBegin).count() / 1000000.0 << std::endl;
 
     return 0;
 }
-
-
-
-
-
-
-
-
 
 bool prepMatricies(std::vector<Point> &listOfPoints,
                    std::vector<Face> &listOfFaces,
@@ -1206,8 +1205,3 @@ bool prepSolutionOutput(Eigen::VectorXd &u_coords,
     //           << std::endl;
     return true;
 }
-
-
-
-
-

@@ -177,6 +177,7 @@ bool postProcess(std::vector<double> &outputAreas,
                  Eigen::MatrixXi &faceMatrix,
                  std::vector<Point> &listOfPoints,
                  Eigen::VectorXi &pinnedVerticies,
+                 std::vector<double> &results,
                  int scaleFlag
 
 )
@@ -214,7 +215,8 @@ bool postProcess(std::vector<double> &outputAreas,
     for (int i = 0; i < listOfFaces.size(); i++)
     {
         std::cout << "Face: " << i << "  Area before: " << abs(listOfAreas.at(i)) << "   Area after:  " << outputAreas.at(i) << "\t\t";
-        std::cout << "Percentage change: " << ((abs(listOfAreas.at(i)) - outputAreas.at(i)) / listOfAreas.at(i)) * 100 << "\n";
+        results.at(i) = ((abs(listOfAreas.at(i)) - outputAreas.at(i)) / listOfAreas.at(i)) * 100;
+        std::cout << "Percentage change: " <<  results.at(i) << "\n";
     }
 
     return true;
