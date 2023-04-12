@@ -1,4 +1,4 @@
-#include "TRI_reader.hpp"
+#include "TRI_mapper.hpp"
 #include "FileIO.hpp"
 
 #include <algorithm> //for testing if indicies is in listofindicies for preventing duplication in patch creation
@@ -14,7 +14,7 @@ int main()
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
     // std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
-    std::string filePath = "actual_part_sphere.tri";  //hex_mesh
+    std::string filePath = "actual_part_sphere.tri"; // hex_mesh //high_modifiedTRI  //actual_part_sphere
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
@@ -586,17 +586,26 @@ int main()
     // SOlver
     // Matrix needs to be compressed before it can be used with solver
     A.makeCompressed();
+    
+
+    double nonZeros = A.nonZeros();
+    double numElements = A.rows()*A.cols(); 
+    double nonZeroPercentage = (nonZeros/numElements) *100;  //cabove compoentns can be combined here, initialisation?
+    std::cout << "Num non zeros: "  << A.nonZeros() << "\n";
+    std::cout << "Non-zero precentage: " << nonZeroPercentage << "%\n";
+
+    
     std::cout << "Dimensions (post compression) A: " << A.rows() << " x " << A.cols() << "\n";
     // std::ofstream A_sparseMatrixfile;
     // A_sparseMatrixfile.open("A_sparse.txt");
     // A_sparseMatrixfile << Eigen::MatrixXd(A);
 
-    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
-    // Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
+    // Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int>> solver;
+    Eigen::LeastSquaresConjugateGradient<Eigen::SparseMatrix<double>> lscg;
 
     std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
-    solver.compute(A);
-    // lscg.compute(A);
+    // solver.compute(A);
+    lscg.compute(A);
     std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
     std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
 
@@ -607,8 +616,8 @@ int main()
     // }
 
     std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
-    solution = solver.solve(RHS);
-    // solution = lscg.solve(RHS);
+    // solution = solver.solve(RHS);
+    solution = lscg.solve(RHS);
     std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
     // if (solver.info() != Eigen::Success) //should this be solution###########################
     // {
@@ -616,13 +625,15 @@ int main()
     //     return -1;
     // }
 
-    // std::cout << "#iterations:     " << lscg.iterations() << std::endl;
-    // std::cout << "estimated error: " << lscg.error() << std::endl;
-
     // std::cout << "Least-Squares Solution (U coords, then V):\n\n"
     //           << solution << std::endl;
 
     std::cout << "Time for solver (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_solve - begin_solve).count() / 1000000.0 << std::endl;
+    
+    
+    std::cout << "#iterations:     " << lscg.iterations() << std::endl;
+    std::cout << "estimated error: " << lscg.error() << std::endl;
+    
     //  std::cout << "\n\n\n\n\nThe solution using normal equations is:\n"
     //  << (A.transpose() * A).ldlt().solve(A.transpose() * RHS) << std::endl;
 
@@ -631,20 +642,18 @@ int main()
 
     prepSolutionOutput(u_coords, v_coords, pinnedVerticies, solution, pinnedUV, listOfPoints.size());
 
-    
-
     // determing output triangle areas
     std::vector<double> outputAreas(listOfAreas.size());
     std::vector<Point> outputPoints;
     std::vector<double> results(listOfAreas.size());
-    
+
     int attributeFlag = 0;
-    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri", attributeFlag,results);
+    outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri", attributeFlag, results);
 
     int scaleFlag = 1;
     postProcess(outputAreas, listOfAreas, outputPoints, listOfFaces, u_coords, v_coords, faceMatrix, listOfPoints, pinnedVerticies, results, scaleFlag);
 
-    attributeFlag=1;
+    attributeFlag = 1;
     outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "withAttributes_output_UV.tri", attributeFlag, results);
 
     std::chrono::steady_clock::time_point overallEnd = std::chrono::steady_clock::now();

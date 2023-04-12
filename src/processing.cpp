@@ -193,7 +193,7 @@ bool postProcess(std::vector<double> &outputAreas,
                                             ((listOfPoints.at(pinnedVerticies(0)).get_y() - listOfPoints.at(pinnedVerticies(1)).get_y())) * ((listOfPoints.at(pinnedVerticies(0)).get_y() - listOfPoints.at(pinnedVerticies(1)).get_y())) +
                                             ((listOfPoints.at(pinnedVerticies(0)).get_z() - listOfPoints.at(pinnedVerticies(1)).get_z())) * ((listOfPoints.at(pinnedVerticies(0)).get_z() - listOfPoints.at(pinnedVerticies(1)).get_z())));
 
-        std::cout << "Distance between pinned coords in xyz: " << distanceBetweenPinned << "   Distance in UV: 1\n";
+        // std::cout << "Distance between pinned coords in xyz: " << distanceBetweenPinned << "   Distance in UV: 1\n";
 
         // scale up mesh by distance
         for (int i = 0; i < u_coords.rows(); i++)
@@ -207,16 +207,16 @@ bool postProcess(std::vector<double> &outputAreas,
 
     for (int i = 0; i < u_coords.rows(); i++)
     {
-        std::cout << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
+        // std::cout << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
         outputPoints.push_back(Point(i, u_coords(i), v_coords(i), 0));
     }
     calcTriangleAreas(outputPoints, listOfFaces, outputAreas);
 
     for (int i = 0; i < listOfFaces.size(); i++)
     {
-        std::cout << "Face: " << i << "  Area before: " << abs(listOfAreas.at(i)) << "   Area after:  " << outputAreas.at(i) << "\t\t";
+        // std::cout << "Face: " << i << "  Area before: " << abs(listOfAreas.at(i)) << "   Area after:  " << outputAreas.at(i) << "\t\t";
         results.at(i) = ((abs(listOfAreas.at(i)) - outputAreas.at(i)) / listOfAreas.at(i)) * 100;
-        std::cout << "Percentage change: " <<  results.at(i) << "\n";
+        // std::cout << "Percentage change: " <<  results.at(i) << "\n";
     }
 
     return true;

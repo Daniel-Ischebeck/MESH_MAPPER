@@ -12,9 +12,9 @@ int main()
 
     std::vector<Point> listOfPoints;
     std::vector<Face> listOfFaces;
-    std::string filePath = "../files/indexed_straight_dome.tri";
-    // std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
-    // std::string filePath = "actual_part_sphere.tri";  //hex_mesh
+    // std::string filePath = "../files/indexed_straight_dome.tri";
+    // std::string filePath = "../files/part_sphere_high.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
+    std::string filePath = "actual_part_sphere.tri";  //hex_mesh  //high_modifiedTRI //actual_part_sphere
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
@@ -594,7 +594,15 @@ int main()
 
     std::chrono::steady_clock::time_point begin_compute = std::chrono::steady_clock::now();
     // solver.compute(A);
+
     auto solver = A.colPivHouseholderQr();
+    // auto solver = A.householderQr();
+    // auto solver = A.template Eigen::BDCSVD<Eigen::ComputeThinU | Eigen::ComputeThinV>();
+
+    // Eigen::JacobiSVD<Eigen::MatrixXd, Eigen::ComputeThinU | Eigen::ComputeThinV> solver(A);
+
+    // auto solver = (A.transpose() * A).ldlt();
+
     // lscg.compute(A);
     std::chrono::steady_clock::time_point end_compute = std::chrono::steady_clock::now();
     std::cout << "Time for compute (sec) = " << std::chrono::duration_cast<std::chrono::microseconds>(end_compute - begin_compute).count() / 1000000.0 << std::endl;
@@ -607,6 +615,10 @@ int main()
 
     std::chrono::steady_clock::time_point begin_solve = std::chrono::steady_clock::now();
     solution = solver.solve(RHS);
+
+    // solution = (A.transpose() * A).ldlt().solve(A.transpose() * RHS);
+    // solution = solver.solve(A.transpose() * RHS);
+
     // solution = lscg.solve(RHS);
     std::chrono::steady_clock::time_point end_solve = std::chrono::steady_clock::now();
     // if (solver.info() != Eigen::Success) //should this be solution###########################
@@ -945,17 +957,17 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
 
     std::cout << "Dimensions of M: " << M.rows() << " x " << M.cols() << "\n";
 
-    std::cout << "\n\nFilled matrix M:\n\n";
-    std::cout << Eigen::MatrixXd(M) << "\n\n"
-              << std::endl; // for nice formatting of sparse convert to dense
+    // std::cout << "\n\nFilled matrix M:\n\n";
+    // std::cout << Eigen::MatrixXd(M) << "\n\n"
+    //           << std::endl; // for nice formatting of sparse convert to dense
 
-    std::cout << "\n\nA_Mf1:\n\n";
-    std::cout << Eigen::MatrixXd(A_Mf1) << "\n\n"
-              << std::endl;
+    // std::cout << "\n\nA_Mf1:\n\n";
+    // std::cout << Eigen::MatrixXd(A_Mf1) << "\n\n"
+    //           << std::endl;
 
-    std::cout << "\n\nA_Mf2:\n\n";
-    std::cout << Eigen::MatrixXd(A_Mf2) << "\n\n"
-              << std::endl;
+    // std::cout << "\n\nA_Mf2:\n\n";
+    // std::cout << Eigen::MatrixXd(A_Mf2) << "\n\n"
+    //           << std::endl;
 
     // we want to copy pinned coordinate data to its own thing, remove these from the matrix
     // and resize the matrix
@@ -1090,9 +1102,9 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
 
     std::cout << "#############  Final things   #########\n\n";
     std::cout << "Dimensions A: " << A.rows() << " x " << A.cols() << "\n";
-    std::cout << "A\n\n"
-              << A << "\n\n"
-              << std::endl;
+    // std::cout << "A\n\n"
+    //           << A << "\n\n"
+    //           << std::endl;
 
     // Eigen::MatrixXd Bmat_top = Eigen::MatrixXd::Zero(listOfFaces.size(), 4); // 4 as two pinned verticeis
     // Eigen::MatrixXd Bmat_bottom = Eigen::MatrixXd::Zero(listOfFaces.size(), 4);
@@ -1106,9 +1118,9 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
     // b = - Bmat x PinnedVector          ??
     // do we assign values for Up1??
 
-    std::cout << "Bmat:\n"
-              << Bmat << "\n\n"
-              << std::endl;
+    // std::cout << "Bmat:\n"
+    //           << Bmat << "\n\n"
+    //           << std::endl;
 
     // Eigen::VectorXd pinnedUV(4, 1); // will always pin two coords, therefore 4 points
     pinnedUV << 0, 1, 0, 0; // choosing to pin in UV space, one coord at (0,0), (1,0)   //is this sensible for all shapes?
