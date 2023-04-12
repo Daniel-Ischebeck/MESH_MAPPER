@@ -184,3 +184,89 @@ bool readFile(std::vector<Point> &listOfPoints,
 
     return true;
 }
+
+bool readOBJ(std::vector<Point> &listOfPoints,
+              std::vector<Face> &listOfFaces,
+              std::string filePath)
+{
+    std::ifstream inputTRIFile(filePath); // straight_dome.tri
+    std::string line;
+
+    if (!inputTRIFile.is_open())
+    {
+        std::cout << "Failed to open file";
+        return false;
+    }
+
+    int currentLine = 1;
+    int numPoints, numDimensions, numAttrPP;
+    int numFaces, numVertPF, numAttrPF;
+
+    int faceIndexCounter = 0;
+    int pointIndexCounter = 0;
+
+    while (getline(inputTRIFile, line))
+    {
+        std::istringstream iss(line);
+
+        int _pointIndex;
+        double _x, _y, _z;
+
+        int _faceIndex;
+        int _aIndex, _bIndex, _cIndex;
+
+        char letter;
+
+        if (!line.empty())
+        {
+            // std::cout << "Current Line: " << currentLine << "\n";
+            if (currentLine == 1)
+            {
+                iss >> numPoints;
+
+                listOfPoints.resize(numPoints);
+            }
+
+            if (currentLine == 2)
+            {
+                iss >> numFaces;
+                listOfFaces.resize(numFaces);
+            }
+            else if ((iss >> letter >> _x >> _y >> _z) && currentLine < numPoints + 3)
+            {
+                // formatting for points
+                // std::cout << "**Line: " << currentLine << "\n";
+                // std::cout << _pointIndex << " " << _x << " " << _y << " " << _z << "\n";
+
+                // listOfPoints.at(_pointIndex) = Point(_pointIndex, _x, _y, _z);
+                listOfPoints.at(pointIndexCounter) = Point(pointIndexCounter, _x, _y, _z);
+
+                pointIndexCounter++;
+            }
+
+            else if (currentLine > numPoints + 2 && currentLine < numPoints + numFaces + 3)
+            // 21 = 1+numPoints(8)+1+numFaces(10)+1+1 - account for lines which give number of items, and line at end
+            {
+                std::istringstream iss(line);
+
+                iss >> letter >> _aIndex >> _bIndex >> _cIndex; // there can be more attributes im not reading in here
+                // std::cout << "!Line: " << currentLine << "\n";
+
+                // faces arent indexed in phils example, use counter
+                // std::cout << faceIndexCounter << " " << _aIndex << " " << _bIndex << " " << _cIndex << "\n";
+                listOfFaces.at(faceIndexCounter) = Face(faceIndexCounter, _aIndex-1, _bIndex-1, _cIndex-1);
+
+                // testing eigen matrix of faces for boundary loop
+
+                faceIndexCounter++;
+            }
+            else
+            {
+                std::cout << "Other\n";
+            }
+            currentLine++;
+        }
+    }
+
+    return true;
+}

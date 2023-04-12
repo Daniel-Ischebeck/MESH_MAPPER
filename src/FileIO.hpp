@@ -17,7 +17,6 @@ bool readFile(std::vector<Point> &listOfPoints,
               std::vector<std::vector<double>> &points,
               std::string filePath);
 
-
 bool outputTRIfile(std::vector<Point> &listOfPoints,
                    std::vector<Face> &listOfFaces,
                    std::string filePath);
@@ -28,4 +27,8 @@ bool outputUVfile(std::vector<Face> &listOfFaces,
                   Eigen::VectorXd &v_coords,
                   std::string filePath,
                   int attributeFlag,
-                  std::vector<double> &results); 
+                  std::vector<double> &results);
+
+bool readOBJ(std::vector<Point> &listOfPoints,
+             std::vector<Face> &listOfFaces,
+             std::string filePath);

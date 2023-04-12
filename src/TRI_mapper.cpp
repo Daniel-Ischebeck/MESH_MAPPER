@@ -5,6 +5,13 @@
 
 int main()
 {
+
+    std::vector<Point> OBJlistOfPoints;
+    std::vector<Face> OBJlistOfFaces;
+    std::string OBJfilePath = "wing_v1.obj";
+    readOBJ(OBJlistOfPoints, OBJlistOfFaces, OBJfilePath );
+    outputTRIfile(OBJlistOfPoints, OBJlistOfFaces, "wing.tri");
+
     std::chrono::steady_clock::time_point overallBegin = std::chrono::steady_clock::now();
 
     std::vector<std::vector<int>> faces;
@@ -14,7 +21,7 @@ int main()
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
     // std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
-    std::string filePath = "actual_part_sphere.tri"; // hex_mesh //high_modifiedTRI  //actual_part_sphere
+    std::string filePath = "wing.tri"; // hex_mesh //high_modifiedTRI  //actual_part_sphere
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
