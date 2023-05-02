@@ -186,7 +186,8 @@ bool postProcess(std::vector<double> &outputAreas,
     // consider distance between selected pinned points and between pinned UV
 
     // //d = sqrt ( ((x2 - x1)^2 + (y2 - y1)^2 + (z2 - z1)^2 )
-
+    double totalAreaBefore = 0, totalAreaAfter = 0;
+    double scaleFactor;
     if (scaleFlag == 1)
     {
         double distanceBetweenPinned = sqrt(((listOfPoints.at(pinnedVerticies(0)).get_x() - listOfPoints.at(pinnedVerticies(1)).get_x())) * ((listOfPoints.at(pinnedVerticies(0)).get_x() - listOfPoints.at(pinnedVerticies(1)).get_x())) +
@@ -194,34 +195,73 @@ bool postProcess(std::vector<double> &outputAreas,
                                             ((listOfPoints.at(pinnedVerticies(0)).get_z() - listOfPoints.at(pinnedVerticies(1)).get_z())) * ((listOfPoints.at(pinnedVerticies(0)).get_z() - listOfPoints.at(pinnedVerticies(1)).get_z())));
 
         // std::cout << "Distance between pinned coords in xyz: " << distanceBetweenPinned << "   Distance in UV: 1\n";
+        for (int i = 0; i < listOfAreas.size(); i++)
+        {
+            totalAreaBefore = totalAreaBefore + abs(listOfAreas.at(i)); // problem with += maybe as std::vector
+        }
+        std::cout << "totalAreaBefore: " << totalAreaBefore << "\n";
 
-        // scale up mesh by distance
         for (int i = 0; i < u_coords.rows(); i++)
         {
-            u_coords(i) *= distanceBetweenPinned;
-            v_coords(i) *= distanceBetweenPinned;
+            // std::cout << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
+            outputPoints.push_back(Point(i, u_coords(i), v_coords(i), 0));
+        }
+        calcTriangleAreas(outputPoints, listOfFaces, outputAreas);
+
+        for (int i = 0; i < outputAreas.size(); i++)
+        {
+            totalAreaAfter = totalAreaAfter + abs(outputAreas.at(i)); // problem with +=
+        }
+        std::cout << "totalAreaAfter: " << totalAreaAfter << "\n";
+
+        scaleFactor = totalAreaBefore / totalAreaAfter;
+        std::cout << "Scale factor: " << scaleFactor << "\n";
+
+        // scale up mesh by area
+        for (int i = 0; i < u_coords.rows(); i++)
+        {
+            u_coords(i) *= scaleFactor;
+            v_coords(i) *= scaleFactor;
         }
 
+        // // scale up mesh by distance
+        // for (int i = 0; i < u_coords.rows(); i++)
+        // {
+        //     u_coords(i) *= distanceBetweenPinned;
+        //     v_coords(i) *= distanceBetweenPinned;
+        // }
+
+        outputPoints.clear();
+        for (int i = 0; i < u_coords.rows(); i++)
+        {
+            // std::cout << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
+            outputPoints.push_back(Point(i, u_coords(i), v_coords(i), 0));
+        }
+        calcTriangleAreas(outputPoints, listOfFaces, outputAreas);
+        
         // outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "Scaledoutput_UV.tri");
     }
 
-    for (int i = 0; i < u_coords.rows(); i++)
+    else
     {
-        // std::cout << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
-        outputPoints.push_back(Point(i, u_coords(i), v_coords(i), 0));
+        for (int i = 0; i < u_coords.rows(); i++)
+        {
+            // std::cout << i << " " << u_coords(i) << " " << v_coords(i) << "\n";
+            outputPoints.push_back(Point(i, u_coords(i), v_coords(i), 0));
+        }
+        calcTriangleAreas(outputPoints, listOfFaces, outputAreas);
     }
-    calcTriangleAreas(outputPoints, listOfFaces, outputAreas);
 
     for (int i = 0; i < listOfFaces.size(); i++)
     {
         // std::cout << "Face: " << i << "  Area before: " << abs(listOfAreas.at(i)) << "   Area after:  " << outputAreas.at(i) << "\t\t";
-        results.at(i) = ((abs(listOfAreas.at(i)) - outputAreas.at(i)) / listOfAreas.at(i)) * 100;
+        // results.at(i) = ((abs(listOfAreas.at(i)) - abs(outputAreas.at(i))) / abs(listOfAreas.at(i))) * 100;
+        results.at(i) = (abs(listOfAreas.at(i)) / abs(outputAreas.at(i)));
         // std::cout << "Percentage change: " <<  results.at(i) << "\n";
     }
 
     return true;
 }
-
 
 bool rotateModel(std::vector<Point> &listOfPoints,
                  Eigen::MatrixXd &pointMatrix,

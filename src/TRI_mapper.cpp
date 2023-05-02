@@ -8,9 +8,9 @@ int main()
 
     std::vector<Point> OBJlistOfPoints;
     std::vector<Face> OBJlistOfFaces;
-    std::string OBJfilePath = "wing_v1.obj";
+    std::string OBJfilePath = "lead_edge_v2.obj";    //wing_v3.obj
     readOBJ(OBJlistOfPoints, OBJlistOfFaces, OBJfilePath );
-    outputTRIfile(OBJlistOfPoints, OBJlistOfFaces, "wing.tri");
+    outputTRIfile(OBJlistOfPoints, OBJlistOfFaces, "lead_edge_v2.tri");
 
     std::chrono::steady_clock::time_point overallBegin = std::chrono::steady_clock::now();
 
@@ -21,7 +21,7 @@ int main()
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
     // std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
-    std::string filePath = "wing.tri"; // hex_mesh //high_modifiedTRI  //actual_part_sphere
+    std::string filePath = "wingv3.tri"; // hex_mesh //high_modifiedTRI  //actual_part_sphere
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
@@ -657,7 +657,7 @@ int main()
     int attributeFlag = 0;
     outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri", attributeFlag, results);
 
-    int scaleFlag = 1;
+    int scaleFlag = 0;
     postProcess(outputAreas, listOfAreas, outputPoints, listOfFaces, u_coords, v_coords, faceMatrix, listOfPoints, pinnedVerticies, results, scaleFlag);
 
     attributeFlag = 1;
