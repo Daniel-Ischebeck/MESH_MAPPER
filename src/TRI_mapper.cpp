@@ -3,6 +3,8 @@
 
 #include <algorithm> //for testing if indicies is in listofindicies for preventing duplication in patch creation
 
+
+
 int main()
 {
 
@@ -21,7 +23,7 @@ int main()
     std::vector<Face> listOfFaces;
     // std::string filePath = "../files/indexed_straight_dome.tri";
     // std::string filePath = "../files/part_sphere_low.tri"; // part_sphere_high "../files/double_dome.tri" aircraft_wing.tri
-    std::string filePath = "wingv3.tri"; // hex_mesh //high_modifiedTRI  //actual_part_sphere
+    std::string filePath = "wingv3.tri"; // hex_mesh //high_modifiedTRI  //actual_part_sphere  //wingv3.tri
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
@@ -581,8 +583,10 @@ int main()
     Eigen::SparseMatrix<double> A(2 * listOfFaces.size(), 2 * (listOfPoints.size() - 2));
     Eigen::MatrixXd RHS(2 * (listOfFaces.size()), 1);
     Eigen::VectorXd pinnedUV(4, 1);
+    std::vector< Eigen::MatrixXd > listOfLocalBasis(listOfFaces.size());
 
-    prepMatricies(listOfPoints, listOfFaces, listOfAreas, pinnedVerticies, pinnedUV, A, RHS);
+
+    prepMatricies(listOfPoints, listOfFaces, listOfAreas, listOfLocalBasis, pinnedVerticies, pinnedUV, A, RHS);
 
     Eigen::VectorXd solution(2 * (listOfPoints.size() - 2), 1);
 
@@ -658,7 +662,7 @@ int main()
     outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "output_UV.tri", attributeFlag, results);
 
     int scaleFlag = 0;
-    postProcess(outputAreas, listOfAreas, outputPoints, listOfFaces, u_coords, v_coords, faceMatrix, listOfPoints, pinnedVerticies, results, scaleFlag);
+    postProcess(outputAreas, listOfAreas, outputPoints, listOfFaces, u_coords, v_coords, faceMatrix, listOfPoints, pinnedVerticies, results, listOfLocalBasis, scaleFlag);
 
     attributeFlag = 1;
     outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "withAttributes_output_UV.tri", attributeFlag, results);
@@ -672,6 +676,7 @@ int main()
 bool prepMatricies(std::vector<Point> &listOfPoints,
                    std::vector<Face> &listOfFaces,
                    std::vector<double> &listOfAreas,
+                   std::vector< Eigen::MatrixXd > &listOfLocalBasis,
                    Eigen::VectorXi &pinnedVerticies,
                    Eigen::VectorXd &pinnedUV,
                    Eigen::SparseMatrix<double> &A,
@@ -809,6 +814,11 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
 
                 // complex part yc-yb
                 A_Mf2.insert(i, j) = (Yc - Yb) / sqrt(abs(listOfAreas.at(i)));
+
+                Eigen::MatrixXd localBasis(3,2);
+                localBasis << Xa, Ya, Xb, Yb, Xc, Yc;
+                // std::cout <<  "i: " << i << "   local basis 1 \n" << localBasis << "\n\n";
+                listOfLocalBasis.at(i) = localBasis;
             }
 
             if (listOfFaces.at(i).get_bIndex() == j) // Weight 2
@@ -884,6 +894,13 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
 
                 // complex part yc-yb
                 A_Mf2.insert(i, j) = (Ya - Yc) / sqrt(abs(listOfAreas.at(i)));
+                
+                Eigen::MatrixXd localBasis(3,2);
+                localBasis << Xa, Ya, 
+                              Xb, Yb, 
+                              Xc, Yc;
+                // std::cout <<  "i: " << i <<  "   local basis 2 \n" << localBasis << "\n\n";
+                listOfLocalBasis.at(i) = localBasis;
             }
 
             if (listOfFaces.at(i).get_cIndex() == j) // Weight 3
@@ -958,6 +975,11 @@ bool prepMatricies(std::vector<Point> &listOfPoints,
 
                 // complex part yc-yb
                 A_Mf2.insert(i, j) = (Yb - Ya) / sqrt(abs(listOfAreas.at(i)));
+
+                Eigen::MatrixXd localBasis(3,2);
+                localBasis << Xa, Ya, Xb, Yb, Xc, Yc;
+                // std::cout << "i: " << i << "   local basis 3 \n" << localBasis << "\n\n";
+                listOfLocalBasis.at(i) = localBasis;
             }
         }
     }

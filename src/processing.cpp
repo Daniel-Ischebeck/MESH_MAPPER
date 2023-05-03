@@ -178,6 +178,7 @@ bool postProcess(std::vector<double> &outputAreas,
                  std::vector<Point> &listOfPoints,
                  Eigen::VectorXi &pinnedVerticies,
                  std::vector<double> &results,
+                 std::vector<Eigen::MatrixXd> &listOfLocalBasis,
                  int scaleFlag
 
 )
@@ -238,7 +239,7 @@ bool postProcess(std::vector<double> &outputAreas,
             outputPoints.push_back(Point(i, u_coords(i), v_coords(i), 0));
         }
         calcTriangleAreas(outputPoints, listOfFaces, outputAreas);
-        
+
         // outputUVfile(listOfFaces, faceMatrix, u_coords, v_coords, "Scaledoutput_UV.tri");
     }
 
@@ -259,6 +260,108 @@ bool postProcess(std::vector<double> &outputAreas,
         results.at(i) = (abs(listOfAreas.at(i)) / abs(outputAreas.at(i)));
         // std::cout << "Percentage change: " <<  results.at(i) << "\n";
     }
+
+    // ################response direction test
+    Eigen::MatrixXd TandB(3, 2);
+    Eigen::MatrixXd pointMatrix(3, 2);
+    Eigen::MatrixXd uvMatrix(2, 2);
+
+    //########################generating a local orthonomral basis for UV triangles
+                    double angle_between_AB_AC;
+
+                Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
+
+                vAB << (outputPoints.at(listOfFaces.at(64).get_bIndex()).get_x()) - (outputPoints.at(listOfFaces.at(64).get_aIndex()).get_x()),
+                    (outputPoints.at(listOfFaces.at(64).get_bIndex()).get_y()) - (outputPoints.at(listOfFaces.at(64).get_aIndex()).get_y()),
+                    (outputPoints.at(listOfFaces.at(64).get_bIndex()).get_z()) - (outputPoints.at(listOfFaces.at(64).get_aIndex()).get_z());
+
+                vAC << (outputPoints.at(listOfFaces.at(64).get_cIndex()).get_x()) - (outputPoints.at(listOfFaces.at(64).get_aIndex()).get_x()),
+                    (outputPoints.at(listOfFaces.at(64).get_cIndex()).get_y()) - (outputPoints.at(listOfFaces.at(64).get_aIndex()).get_y()),
+                    (outputPoints.at(listOfFaces.at(64).get_cIndex()).get_z()) - (outputPoints.at(listOfFaces.at(64).get_aIndex()).get_z());
+
+                // normalise
+                double vAB_mag = sqrt(vAB.x() * vAB.x() + vAB.y() * vAB.y() + vAB.z() * vAB.z());
+                vAB_norm << vAB.x() / vAB_mag, vAB.y() / vAB_mag, vAB.z() / vAB_mag;
+
+                double vAC_mag = sqrt(vAC.x() * vAC.x() + vAC.y() * vAC.y() + vAC.z() * vAC.z());
+                vAC_norm << vAC.x() / vAC_mag, vAC.y() / vAC_mag, vAC.z() / vAC_mag;
+
+                double dotProduct = vAB_norm.x() * vAC_norm.x() + vAB_norm.y() * vAC_norm.y() + vAB_norm.z() * vAC_norm.z();
+
+                angle_between_AB_AC = acos(dotProduct);
+
+ 
+                double Xa, Xb, Xc;
+                double Ya, Yb, Yc;
+
+                Xa = 0; // A is at the origin
+                Ya = 0;
+
+                Xb = vAB.norm(); // vAB_norm.norm() / magX;
+                Yb = 0;
+
+                Xc = vAC.norm() * cos(angle_between_AB_AC); // vAC_mag   vAC_norm.norm()
+                Yc = vAC.norm() * sin(angle_between_AB_AC); // vAC_norm.norm()
+                
+                Eigen::MatrixXd localBasis(3,2);
+                localBasis << Xa, Ya, Xb, Yb, Xc, Yc;
+
+
+    pointMatrix(0, 0) = listOfLocalBasis.at(64)(1, 0) - listOfLocalBasis.at(64)(0, 0);
+    pointMatrix(0, 1) = listOfLocalBasis.at(64)(2, 0) - listOfLocalBasis.at(64)(0, 0);
+    pointMatrix(1, 0) = listOfLocalBasis.at(64)(1, 1) - listOfLocalBasis.at(64)(0, 1);
+    pointMatrix(1, 1) = listOfLocalBasis.at(64)(2, 1) - listOfLocalBasis.at(64)(0, 1);
+    pointMatrix(2, 0) = 0;
+    pointMatrix(2, 1) = 0;
+
+    uvMatrix(0, 0) = localBasis(1, 0) - localBasis(0, 0);
+    uvMatrix(0, 1) = localBasis(2, 0) - localBasis(0, 0);
+    uvMatrix(1, 0) = localBasis(1, 1) - localBasis(0, 1);
+    uvMatrix(1, 1) = localBasis(2, 1) - localBasis(0, 1);
+
+//###################
+    //global
+    // pointMatrix(0, 0) = listOfPoints.at(listOfFaces.at(64).get_bIndex()).get_x() - listOfPoints.at(listOfFaces.at(64).get_aIndex()).get_x();
+    // pointMatrix(0, 1) = listOfPoints.at(listOfFaces.at(64).get_cIndex()).get_x() - listOfPoints.at(listOfFaces.at(64).get_aIndex()).get_x();
+    // pointMatrix(1, 0) = listOfPoints.at(listOfFaces.at(64).get_bIndex()).get_y() - listOfPoints.at(listOfFaces.at(64).get_aIndex()).get_y();
+    // pointMatrix(1, 1) = listOfPoints.at(listOfFaces.at(64).get_cIndex()).get_y() - listOfPoints.at(listOfFaces.at(64).get_aIndex()).get_y();
+    // pointMatrix(2, 0) = listOfPoints.at(listOfFaces.at(64).get_bIndex()).get_z() - listOfPoints.at(listOfFaces.at(64).get_aIndex()).get_z();
+    // pointMatrix(2, 1) = listOfPoints.at(listOfFaces.at(64).get_cIndex()).get_x() - listOfPoints.at(listOfFaces.at(64).get_aIndex()).get_z();
+
+    // uvMatrix(0, 0) = outputPoints.at(listOfFaces.at(64).get_bIndex()).get_x() - outputPoints.at(listOfFaces.at(64).get_aIndex()).get_x();
+    // uvMatrix(0, 1) = outputPoints.at(listOfFaces.at(64).get_cIndex()).get_x() - outputPoints.at(listOfFaces.at(64).get_aIndex()).get_x();
+    // uvMatrix(1, 0) = outputPoints.at(listOfFaces.at(64).get_bIndex()).get_y() - outputPoints.at(listOfFaces.at(64).get_aIndex()).get_y();
+    // uvMatrix(1, 1) = outputPoints.at(listOfFaces.at(64).get_cIndex()).get_y() - outputPoints.at(listOfFaces.at(64).get_aIndex()).get_y();
+
+    uvMatrix = uvMatrix.inverse();
+
+    TandB = pointMatrix * uvMatrix;
+
+    std::cout << "\n\n################### reposne direction stuff\n\n";
+    std::cout << "pointMatrix: \n"
+              << pointMatrix << "\n\n";
+    std::cout << "uvMatrix: \n"
+              << uvMatrix << "\n\n";
+    std::cout << "T and B: \n"
+              << TandB << "\n\n";
+
+    Eigen::Vector3d T, B;
+    T << TandB.col(0);
+    B << TandB.col(1);
+
+    std::cout << "length of T " << T.norm() << "\n";
+    std::cout << "length of B " << B.norm() << "\n";
+
+    std::cout << "angle between T and B: " << std::atan2(T.cross(B).norm(), T.dot(B)) << "\n";
+
+    double aSquared, bSquared, eccentricity;
+    aSquared = 0.5 * ((T.dot(T) + B.dot(B)) + sqrt((T.dot(T) - B.dot(B)) * (T.dot(T) - B.dot(B)) + 4 * ((T.dot(B)) * (T.dot(B)))));
+    bSquared = 0.5 * ((T.dot(T) + B.dot(B)) - sqrt((T.dot(T) - B.dot(B)) * (T.dot(T) - B.dot(B)) + 4 * ((T.dot(B)) * (T.dot(B)))));
+
+    eccentricity = sqrt(1 - bSquared / aSquared);
+
+    // std::cout << "dot: " << T.dot(T) << "   nomr*norm" << T.norm() * T.norm() << "\n";
+    std::cout << "eccentricity: " << eccentricity << "\n";
 
     return true;
 }

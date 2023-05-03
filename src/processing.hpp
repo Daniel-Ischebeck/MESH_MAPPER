@@ -45,6 +45,7 @@ bool postProcess(std::vector<double> &outputAreas,
                  std::vector<Point> &listOfPoints,
                  Eigen::VectorXi &pinnedVerticies,
                  std::vector<double> &results,
+                 std::vector< Eigen::MatrixXd > &listOfLocalBasis,
                  int scaleFlag
 
 );

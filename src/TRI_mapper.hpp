@@ -23,6 +23,7 @@
 bool prepMatricies(std::vector<Point> &listOfPoints,
                    std::vector<Face> &listOfFaces,
                    std::vector<double> &listOfAreas,
+                   std::vector< Eigen::MatrixXd > &listOfLocalBasis,
                    Eigen::VectorXi &pinnedVerticies,
                    Eigen::VectorXd &pinnedUV,
                    Eigen::SparseMatrix<double> &A,
