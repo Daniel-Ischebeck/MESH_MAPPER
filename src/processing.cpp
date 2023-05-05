@@ -260,13 +260,16 @@ bool postProcess(std::vector<double> &outputAreas,
         results.at(i) = (abs(listOfAreas.at(i)) / abs(outputAreas.at(i)));
         // std::cout << "Percentage change: " <<  results.at(i) << "\n";
     }
-
+    
+    /*
     // ################response direction test
     Eigen::MatrixXd TandB(3, 2);
     Eigen::MatrixXd pointMatrix(3, 2);
     Eigen::MatrixXd uvMatrix(2, 2);
 
     //########################generating a local orthonomral basis for UV triangles
+
+   
                     double angle_between_AB_AC;
 
                 Eigen::Vector3d vAB, vAC, vAB_norm, vAC_norm; // TODO: kind of already done above in temp, assignment there rather than redoing calc.
@@ -362,6 +365,7 @@ bool postProcess(std::vector<double> &outputAreas,
 
     // std::cout << "dot: " << T.dot(T) << "   nomr*norm" << T.norm() * T.norm() << "\n";
     std::cout << "eccentricity: " << eccentricity << "\n";
+    */
 
     return true;
 }

@@ -32,3 +32,5 @@ bool outputUVfile(std::vector<Face> &listOfFaces,
 bool readOBJ(std::vector<Point> &listOfPoints,
              std::vector<Face> &listOfFaces,
              std::string filePath);
+
+void OBJToTRI();

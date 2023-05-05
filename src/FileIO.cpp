@@ -32,7 +32,7 @@ bool outputUVfile(std::vector<Face> &listOfFaces,
         outputUVfile << listOfFaces.size() << " 3 1\n"; // these attribute values may change later
         for (int i = 0; i < listOfFaces.size(); i++)
         {
-            outputUVfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << " " << results.at(i)<<  "\n";
+            outputUVfile << i << " " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << " " << results.at(i) << "\n";
         }
     }
 
@@ -78,6 +78,7 @@ bool readFile(std::vector<Point> &listOfPoints,
               std::vector<std::vector<double>> &points,
               std::string filePath)
 {
+    std::cout << "Reading TRI file...\n";
     std::ifstream inputTRIFile(filePath); // straight_dome.tri
     std::string line;
 
@@ -176,7 +177,7 @@ bool readFile(std::vector<Point> &listOfPoints,
             }
             else
             {
-                std::cout << "Other\n";
+                std::cout << "\n";
             }
             currentLine++;
         }
@@ -186,8 +187,8 @@ bool readFile(std::vector<Point> &listOfPoints,
 }
 
 bool readOBJ(std::vector<Point> &listOfPoints,
-              std::vector<Face> &listOfFaces,
-              std::string filePath)
+             std::vector<Face> &listOfFaces,
+             std::string filePath)
 {
     std::ifstream inputTRIFile(filePath); // straight_dome.tri
     std::string line;
@@ -254,7 +255,7 @@ bool readOBJ(std::vector<Point> &listOfPoints,
 
                 // faces arent indexed in phils example, use counter
                 // std::cout << faceIndexCounter << " " << _aIndex << " " << _bIndex << " " << _cIndex << "\n";
-                listOfFaces.at(faceIndexCounter) = Face(faceIndexCounter, _aIndex-1, _bIndex-1, _cIndex-1);
+                listOfFaces.at(faceIndexCounter) = Face(faceIndexCounter, _aIndex - 1, _bIndex - 1, _cIndex - 1);
 
                 // testing eigen matrix of faces for boundary loop
 
@@ -262,11 +263,20 @@ bool readOBJ(std::vector<Point> &listOfPoints,
             }
             else
             {
-                std::cout << "Other\n";
+                std::cout << "\n";
             }
             currentLine++;
         }
     }
 
     return true;
+}
+
+void OBJToTRI()
+{
+    std::vector<Point> OBJlistOfPoints;
+    std::vector<Face> OBJlistOfFaces;
+    std::string OBJfilePath = "lead_edge_v2.obj"; // wing_v3.obj
+    readOBJ(OBJlistOfPoints, OBJlistOfFaces, OBJfilePath);
+    outputTRIfile(OBJlistOfPoints, OBJlistOfFaces, "lead_edge_v2.tri");
 }
