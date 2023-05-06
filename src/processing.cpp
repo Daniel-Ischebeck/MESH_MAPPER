@@ -256,8 +256,8 @@ bool postProcess(std::vector<double> &outputAreas,
     for (int i = 0; i < listOfFaces.size(); i++)
     {
         // std::cout << "Face: " << i << "  Area before: " << abs(listOfAreas.at(i)) << "   Area after:  " << outputAreas.at(i) << "\t\t";
-        // results.at(i) = ((abs(listOfAreas.at(i)) - abs(outputAreas.at(i))) / abs(listOfAreas.at(i))) * 100;
-        //#######################results.at(i) = (abs(listOfAreas.at(i)) / abs(outputAreas.at(i)));
+        
+        // results.at(i) = (abs(listOfAreas.at(i)) / abs(outputAreas.at(i)));
         // std::cout << "Percentage change: " <<  results.at(i) << "\n";
     }
 
@@ -340,11 +340,11 @@ bool postProcess(std::vector<double> &outputAreas,
         T << TandB.col(0);
         B << TandB.col(1);
 
-        std::cout<< "\n\ni:  " << i << "\n";
-        std::cout << "length of T " << T.norm() << "\n";
-        std::cout << "length of B " << B.norm() << "\n";
-        std::cout << "T/B ratio: " << T.norm() / B.norm() << "\n";
-        std::cout << "angle between T and B (degrees): " << std::atan2(T.cross(B).norm(), T.dot(B)) * (180 / 3.14159) << "\n";
+        // std::cout<< "\n\ni:  " << i << "\n";
+        // std::cout << "length of T " << T.norm() << "\n";
+        // std::cout << "length of B " << B.norm() << "\n";
+        // std::cout << "T/B ratio: " << T.norm() / B.norm() << "\n";
+        // std::cout << "angle between T and B (degrees): " << std::atan2(T.cross(B).norm(), T.dot(B)) * (180 / 3.14159) << "\n";
 
         double aSquared, bSquared, eccentricity;
         aSquared = 0.5 * ((T.dot(T) + B.dot(B)) + sqrt((T.dot(T) - B.dot(B)) * (T.dot(T) - B.dot(B)) + 4 * ((T.dot(B)) * (T.dot(B)))));
@@ -354,8 +354,7 @@ bool postProcess(std::vector<double> &outputAreas,
         results.at(i) = eccentricity;
         averageEccentricity+=eccentricity;
 
-        // std::cout << "dot: " << T.dot(T) << "   nomr*norm" << T.norm() * T.norm() << "\n";
-        std::cout << "eccentricity: " << eccentricity << "\n";
+        // std::cout << "eccentricity: " << eccentricity << "\n";
     }
     std::cout << "Average eccentricity across whole mesh: " << averageEccentricity/listOfFaces.size() << "\n";
     return true;

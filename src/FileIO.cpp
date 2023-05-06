@@ -276,7 +276,43 @@ void OBJToTRI()
 {
     std::vector<Point> OBJlistOfPoints;
     std::vector<Face> OBJlistOfFaces;
-    std::string OBJfilePath = "lead_edge_v2.obj"; // wing_v3.obj
+    std::string OBJfilePath = "part_wing_final.obj"; // wing_v3.obj //lead_edge_v2 //wing_modified_v1.obj
     readOBJ(OBJlistOfPoints, OBJlistOfFaces, OBJfilePath);
-    outputTRIfile(OBJlistOfPoints, OBJlistOfFaces, "lead_edge_v2.tri");
+    outputTRIfile(OBJlistOfPoints, OBJlistOfFaces, "part_wing_final.tri");
+}
+
+void OBJtoOFF()
+{
+    std::vector<Point> OBJlistOfPoints;
+    std::vector<Face> OBJlistOfFaces;
+    std::string OBJfilePath = "wing_v3.obj"; // wing_v3.obj //lead_edge_v2 //wing_modified_v1.obj
+    readOBJ(OBJlistOfPoints, OBJlistOfFaces, OBJfilePath);
+    outputOFFfile(OBJlistOfPoints, OBJlistOfFaces, "wingv3.off");
+}
+
+void outputOFFfile(std::vector<Point> &listOfPoints,
+                   std::vector<Face> &listOfFaces,
+                   std::string filePath)
+{
+
+    std::ofstream outputOFFfile;
+    outputOFFfile.open(filePath); // file name or file path
+
+    outputOFFfile << "OFF\n";
+    outputOFFfile << listOfPoints.size() << " " << listOfFaces.size() << " 0\n"; // uv output points will always have 2 dimensions and 0 attributes
+    for (int i = 0; i < listOfPoints.size(); i++)
+    {
+        outputOFFfile  << listOfPoints.at(i).get_x() << " "
+                      << listOfPoints.at(i).get_y() << " "
+                      << listOfPoints.at(i).get_z() << "\n";
+        // outputTRIfile << i << " " << pointMatrix(i, 0) << " "
+        //               << pointMatrix(i, 1) << " "
+        //               << pointMatrix(i, 2) << "\n";
+    }
+
+    // outputUVfile << faceMatrix << "\n";
+    for (int i = 0; i < listOfFaces.size(); i++)
+    {
+        outputOFFfile << "3 " << listOfFaces.at(i).get_aIndex() << " " << listOfFaces.at(i).get_bIndex() << " " << listOfFaces.at(i).get_cIndex() << " 220 220 220\n";
+    }
 }

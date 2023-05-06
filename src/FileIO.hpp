@@ -34,3 +34,9 @@ bool readOBJ(std::vector<Point> &listOfPoints,
              std::string filePath);
 
 void OBJToTRI();
+
+void outputOFFfile(std::vector<Point> &listOfPoints,
+                   std::vector<Face> &listOfFaces,
+                   std::string filePath);
+
+void OBJtoOFF();
