@@ -13,7 +13,7 @@ int main()
     std::vector<Face> listOfFaces;
     // OBJToTRI();
     // std::string filePath = "../files/indexed_straight_dome.tri";
-    std::string filePath = "wingv3.tri"; // hex_mesh //high_modifiedTRI  //actual_part_sphere  //wingv3.tri
+    std::string filePath = "hex_mesh.tri"; // hex_mesh //high_modifiedTRI  //actual_part_sphere  //wingv3.tri
 
     if (!readFile(listOfPoints, listOfFaces, faces, points, filePath))
     {
